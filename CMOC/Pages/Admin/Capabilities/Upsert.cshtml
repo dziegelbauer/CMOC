@@ -1,0 +1,31 @@
+﻿@page
+@model CMOC.Pages.Admin.Capabilities.Upsert
+
+<form method="post" enctype="multipart/form-data">
+    <input asp-for="Capability.Id" hidden/>
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <div class="col-9">
+                <h2 class="text-primarypl-3">
+                    @(Model.Capability.Id == 0 ? "Create" : "Update") Capability
+                </h2>
+                <hr/>
+
+                <div class="mb-3">
+                    <label asp-for="Capability.Name"></label>
+                    <input type="text" asp-for="@Model.Capability.Name" class="form-control"/>
+                    <span asp-validation-for="Capability.Name" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+        @if (Model.Capability.Id == 0)
+        {
+            <button type="submit" class="btn btn-primary" style="width: 150px;">Create</button>
+        }
+        else
+        {
+            <button type="submit" class="btn btn-primary" style="width: 150px;">Update</button>
+        }
+        <a asp-page="/Admin/Capabilities/Index" class="btn btn-secondary" style="width: 150px;">Back to List</a>
+    </div>
+</form>
