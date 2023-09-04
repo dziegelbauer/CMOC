@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMOC.Services.Test", "CMOC.Services.Test\CMOC.Services.Test.csproj", "{EC7CF860-4DDA-40CB-8D5B-0AB618F589AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,5 +37,9 @@ Global
 		{FCE8CEAF-F250-4AA8-8E4C-9D377EC5671F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCE8CEAF-F250-4AA8-8E4C-9D377EC5671F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCE8CEAF-F250-4AA8-8E4C-9D377EC5671F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC7CF860-4DDA-40CB-8D5B-0AB618F589AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC7CF860-4DDA-40CB-8D5B-0AB618F589AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC7CF860-4DDA-40CB-8D5B-0AB618F589AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC7CF860-4DDA-40CB-8D5B-0AB618F589AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

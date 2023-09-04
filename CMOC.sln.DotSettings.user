@@ -1,2 +1,8 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=07c95b51_002Dc69f_002D4eec_002D9891_002D7304126a57a5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="CanAddLocations" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::EC7CF860-4DDA-40CB-8D5B-0AB618F589AF::net7.0::CMOC.Services.Test.LocationRepositoryIntegrationTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::EC7CF860-4DDA-40CB-8D5B-0AB618F589AF::net7.0::CMOC.Services.Test.IssueRepositoryIntegrationTest&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Mapster/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

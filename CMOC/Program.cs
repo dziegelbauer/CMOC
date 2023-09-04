@@ -1,6 +1,5 @@
 using CMOC.Data;
 using CMOC.Services;
-using CMOC.Services.Repository;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
