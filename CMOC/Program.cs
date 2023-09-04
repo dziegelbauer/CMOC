@@ -1,5 +1,6 @@
 using CMOC.Data;
 using CMOC.Services;
+using CMOC.Services.Repository;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +11,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.RegisterMapsterConfiguration();
-builder.Services.AddScoped<IObjectManager, ObjectManager>();
+builder.Services.RegisterBusinessServices();
 
 builder.Services.AddRazorPages();
 

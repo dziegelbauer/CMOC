@@ -2,6 +2,7 @@
 using CMOC.Data;
 using CMOC.Domain;
 using CMOC.Services.Dto;
+using CMOC.Services.Repository;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,105 +10,56 @@ namespace CMOC.Services;
 
 public class ObjectManager : IObjectManager
 {
+    private readonly ICapabilityRepository _capabilityRepository;
+    private readonly IServiceRepository _serviceRepository;
+    private readonly IEquipmentRepository _equipmentRepository;
+    private readonly ILocationRepository _locationRepository;
+    private readonly IComponentRepository _componentRepository;
+    private readonly IIssueRepository _issueRepository;
     private readonly AppDbContext _db;
 
-    public ObjectManager(AppDbContext db)
+    public ObjectManager(
+        AppDbContext db, 
+        ICapabilityRepository capabilityRepository, 
+        IServiceRepository serviceRepository, 
+        IEquipmentRepository equipmentRepository, 
+        ILocationRepository locationRepository, 
+        IComponentRepository componentRepository, 
+        IIssueRepository issueRepository)
     {
         _db = db;
+        _capabilityRepository = capabilityRepository;
+        _serviceRepository = serviceRepository;
+        _equipmentRepository = equipmentRepository;
+        _locationRepository = locationRepository;
+        _componentRepository = componentRepository;
+        _issueRepository = issueRepository;
     }
 
     #region Capability Methods
-
     public async Task<CapabilityDto?> GetCapabilityAsync(Expression<Func<Capability, bool>>? filter = null)
     {
-        var query = _db.Capabilities.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query
-            .Include(c => c.SupportedBy)
-            .ThenInclude(csr => csr.Service);
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        if (queryResult is null)
-        {
-            return null;
-        }
-
-        return new CapabilityDto
-        {
-            Id = queryResult.Id,
-            Name = queryResult.Name,
-            Dependencies = queryResult.SupportedBy
-                .Select(csr => csr.Service)
-                .Select(s => s.Adapt<ServiceDto>())
-                .ToList()
-        };
+        return await _capabilityRepository.GetAsync(filter);
     }
 
     public async Task<List<CapabilityDto>> GetCapabilitiesAsync(Expression<Func<Capability, bool>>? filter = null)
     {
-        var query = _db.Capabilities.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query
-            .Include(c => c.SupportedBy)
-            .ThenInclude(csr => csr.Service);
-
-        var queryResult = await query.ToListAsync();
-
-        return queryResult.Select(c =>
-            {
-                var dto = new CapabilityDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Dependencies = c.SupportedBy
-                        .Select(csr => csr.Service)
-                        .Select(s => s.Adapt<ServiceDto>())
-                        .ToList()
-                };
-
-                return dto;
-            })
-            .ToList();
+        return await _capabilityRepository.GetManyAsync(filter);
     }
 
     public async Task<CapabilityDto> AddCapabilityAsync(CapabilityDto dto)
     {
-        var capability = await _db.Capabilities.AddAsync(dto.Adapt<Capability>());
-        await _db.SaveChangesAsync();
-        return capability.Entity.Adapt<CapabilityDto>();
+        return await _capabilityRepository.AddAsync(dto);
     }
 
     public async Task<CapabilityDto> UpdateCapabilityAsync(CapabilityDto dto)
     {
-        var capability = _db.Capabilities.Update(dto.Adapt<Capability>());
-        await _db.SaveChangesAsync();
-        return capability.Entity.Adapt<CapabilityDto>();
+        return await _capabilityRepository.UpdateAsync(dto);
     }
 
     public async Task<bool> RemoveCapabilityAsync(int id)
     {
-        var objFromDb = await _db.Capabilities.FirstOrDefaultAsync(c => c.Id == id);
-
-        if (objFromDb is null)
-        {
-            return false;
-        }
-
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return true;
+        return await _capabilityRepository.RemoveAsync(id);
     }
 
     #endregion
@@ -115,359 +67,112 @@ public class ObjectManager : IObjectManager
     #region Service Methods
     public async Task<ServiceDto?> GetServiceAsync(Expression<Func<Service, bool>>? filter = null)
     {
-        var query = _db.Services.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query
-            .Include(s => s.SupportedBy)
-            .ThenInclude(ssr => ssr.Equipment)
-            .ThenInclude(e => e.Components)
-            .ThenInclude(cr => cr.Components)
-            .Include(s => s.Supports)
-            .ThenInclude(csr => csr.Capability);
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        if (queryResult is null)
-        {
-            return null;
-        }
-
-        return new ServiceDto
-        {
-            Id = queryResult.Id,
-            Name = queryResult.Name,
-            Dependencies = queryResult.SupportedBy
-                .Select(ssr => ssr.Equipment)
-                .Select(e => e.Adapt<EquipmentDto>())
-                .ToList(),
-            Dependents = queryResult.Supports
-                .Select(csr => csr.Capability)
-                .Select(c => c.Id)
-                .ToList()
-        };
+        return await _serviceRepository.GetAsync(filter);
     }
 
     public async Task<List<ServiceDto>> GetServicesAsync(Expression<Func<Service, bool>>? filter = null)
     {
-        var query = _db.Services.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query
-            .Include(s => s.SupportedBy)
-            .ThenInclude(ssr => ssr.Equipment)
-            .Include(s => s.Supports)
-            .ThenInclude(csr => csr.Capability);
-
-        var queryResult = await query.ToListAsync();
-
-        return queryResult.Select(s =>
-            {
-                var dto = new ServiceDto
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Dependencies = s.SupportedBy
-                        .Select(ssr => ssr.Equipment)
-                        .Select(e => e.Adapt<EquipmentDto>())
-                        .ToList(),
-                    Dependents = s.Supports
-                        .Select(csr => csr.Capability)
-                        .Select(c => c.Id)
-                        .ToList()
-                };
-
-                return dto;
-            })
-            .ToList();
+        return await _serviceRepository.GetManyAsync(filter);
     }
 
     public async Task<ServiceDto> AddServiceAsync(ServiceDto dto)
     {
-        var service = await _db.Services.AddAsync(dto.Adapt<Service>());
-
-        await _db.SaveChangesAsync();
-
-        foreach (var capability in dto.Dependents)
-        {
-            await _db.CapabilitySupportRelationships.AddAsync(new CapabilitySupportRelationship
-            {
-                CapabilityId = capability,
-                ServiceId = service.Entity.Id,
-                RedundantWithId = null
-            });
-        }
-
-        await _db.SaveChangesAsync();
-        return service.Entity.Adapt<ServiceDto>();
+        return await _serviceRepository.AddAsync(dto);
     }
 
     public async Task<ServiceDto> UpdateServiceAsync(ServiceDto dto)
     {
-        var service = _db.Services.Update(dto.Adapt<Service>());
-
-        var supportRelationships =
-            await _db.CapabilitySupportRelationships
-                .Where(csr => csr.ServiceId == dto.Id)
-                .ToListAsync();
-
-        supportRelationships
-            .Where(csr => !dto.Dependents.Select(c => c).Contains(csr.CapabilityId))
-            .ToList()
-            .ForEach(csr => _db.CapabilitySupportRelationships.Remove(csr));
-
-        foreach (var capability in dto.Dependents)
-        {
-            var relationship = supportRelationships.FirstOrDefault(sr => sr.CapabilityId == capability);
-
-            if (relationship is null)
-            {
-                await _db.CapabilitySupportRelationships.AddAsync(new CapabilitySupportRelationship
-                {
-                    CapabilityId = capability,
-                    ServiceId = dto.Id,
-                    RedundantWithId = null
-                });
-            }
-        }
-
-        await _db.SaveChangesAsync();
-
-        return service.Entity.Adapt<ServiceDto>();
+        return await _serviceRepository.UpdateAsync(dto);
     }
 
     public async Task<bool> RemoveServiceAsync(int id)
     {
-        var objFromDb = await _db.Capabilities.FirstOrDefaultAsync(c => c.Id == id);
-
-        if (objFromDb is null)
-        {
-            return false;
-        }
-
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return true;
+        return await _serviceRepository.RemoveAsync(id);
     }
 
     #endregion
 
     #region Location Methods
-
     public async Task<LocationDto?> GetLocationAsync(Expression<Func<Location, bool>>? filter = null)
     {
-        var query = _db.Locations.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        return queryResult?.Adapt<LocationDto>();
+        return await _locationRepository.GetAsync(filter);
     }
 
     public async Task<List<LocationDto>> GetLocationsAsync(Expression<Func<Location, bool>>? filter = null)
     {
-        var query = _db.Locations.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.ToListAsync();
-
-        return queryResult
-            .Select(l => l.Adapt<LocationDto>())
-            .ToList();
+        return await _locationRepository.GetManyAsync(filter);
     }
 
     public async Task<LocationDto> AddLocationAsync(LocationDto dto)
     {
-        var location = await _db.Locations.AddAsync(dto.Adapt<Location>());
-        await _db.SaveChangesAsync();
-        return location.Entity.Adapt<LocationDto>();
+        return await _locationRepository.AddAsync(dto);
     }
 
     public async Task<LocationDto> UpdateLocationAsync(LocationDto dto)
     {
-        var location = _db.Locations.Update(dto.Adapt<Location>());
-        await _db.SaveChangesAsync();
-        return location.Entity.Adapt<LocationDto>();
+        return await _locationRepository.UpdateAsync(dto);
     }
 
     public async Task<bool> RemoveLocationAsync(int id)
     {
-        var objFromDb = await _db.Locations.FirstOrDefaultAsync(l => l.Id == id);
-
-        if (objFromDb is null)
-        {
-            return false;
-        }
-
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return true;
+        return await _locationRepository.RemoveAsync(id);
     }
 
     #endregion
 
     #region Equipment Methods
-
     public async Task<EquipmentDto?> GetEquipmentItemAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
-        var query = _db.Equipment.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query.Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.Relationships)
-            .ThenInclude(ssr => ssr.Service)
-            .Include(e => e.Components)
-            .ThenInclude(cr => cr.Components);
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        return queryResult?.Adapt<EquipmentDto>();
+        return await _equipmentRepository.GetAsync(filter);
     }
 
     public async Task<List<EquipmentDto>> GetEquipmentItemsAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
-        var query = _db.Equipment.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query.Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.Relationships)
-            .ThenInclude(ssr => ssr.Service)
-            .Include(e => e.Components)
-            .ThenInclude(cr => cr.Components);
-
-        var queryResult = await query.ToListAsync();
-        return queryResult
-            .Select(e => e.Adapt<EquipmentDto>())
-            .ToList();
+        return await _equipmentRepository.GetManyAsync(filter);
     }
 
     public async Task<EquipmentDto> AddEquipmentItemAsync(EquipmentDto dto)
     {
-        var equipment = await _db.Equipment.AddAsync(dto.Adapt<Equipment>());
-        await _db.SaveChangesAsync();
-        return new EquipmentDto
-        {
-            Id = equipment.Entity.Id,
-            LocationId = equipment.Entity.LocationId,
-            Notes = equipment.Entity.Notes,
-            OperationalOverride = equipment.Entity.OperationalOverride,
-            SerialNumber = equipment.Entity.SerialNumber,
-            TypeId = equipment.Entity.TypeId
-        };
+        return await _equipmentRepository.AddAsync(dto);
     }
 
     public async Task<EquipmentDto> UpdateEquipmentItemAsync(EquipmentDto dto)
     {
-        var equipment = _db.Equipment.Update(dto.Adapt<Equipment>());
-        await _db.SaveChangesAsync();
-        return equipment.Entity.Adapt<EquipmentDto>();
+        return await _equipmentRepository.UpdateAsync(dto);
     }
 
     public async Task<bool> RemoveEquipmentItemAsync(int id)
     {
-        var objFromDb = await _db.Equipment.FirstOrDefaultAsync(e => e.Id == id);
-
-        if (objFromDb is null)
-        {
-            return false;
-        }
-
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return true;
+        return await _equipmentRepository.RemoveAsync(id);
     }
 
     #endregion
 
     #region EquipmentType Methods
-
     public async Task<EquipmentTypeDto?> GetEquipmentTypeAsync(Expression<Func<EquipmentType, bool>>? filter = null)
     {
-        var query = _db.EquipmentTypes.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        return queryResult?.Adapt<EquipmentTypeDto>();
+        return await _equipmentRepository.GetTypeAsync(filter);
     }
 
     public async Task<List<EquipmentTypeDto>> GetEquipmentTypesAsync(
         Expression<Func<EquipmentType, bool>>? filter = null)
     {
-        var query = _db.EquipmentTypes.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.ToListAsync();
-
-        return queryResult
-            .Select(e => e.Adapt<EquipmentTypeDto>())
-            .ToList();
+        return await _equipmentRepository.GetTypesAsync(filter);
     }
 
     public async Task<EquipmentTypeDto> AddEquipmentTypeAsync(EquipmentTypeDto dto)
     {
-        var equipmentType = await _db.EquipmentTypes.AddAsync(dto.Adapt<EquipmentType>());
-        await _db.SaveChangesAsync();
-        return equipmentType.Entity.Adapt<EquipmentTypeDto>();
+        return await _equipmentRepository.AddTypeAsync(dto);
     }
 
     public async Task<EquipmentTypeDto> UpdateEquipmentTypeAsync(EquipmentTypeDto dto)
     {
-        var equipmentType = _db.EquipmentTypes.Update(dto.Adapt<EquipmentType>());
-        await _db.SaveChangesAsync();
-        return equipmentType.Entity.Adapt<EquipmentTypeDto>();
+        return await _equipmentRepository.UpdateTypeAsync(dto);
     }
 
     public async Task<bool> RemoveEquipmentTypeAsync(int id)
     {
-        var objFromDb = await _db.EquipmentTypes.FirstOrDefaultAsync(e => e.Id == id);
-
-        if (objFromDb is null)
-        {
-            return false;
-        }
-
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return true;
+        return await _equipmentRepository.RemoveTypeAsync(id);
     }
 
     #endregion
@@ -476,142 +181,79 @@ public class ObjectManager : IObjectManager
 
     public async Task<ComponentDto?> GetComponentAsync(Expression<Func<Component, bool>>? filter = null)
     {
-        var query = _db.Components.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query
-            .Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.ComponentOf)
-            .ThenInclude(cr => cr.Equipment);
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        return queryResult?.Adapt<ComponentDto>();
+        return await _componentRepository.GetAsync(filter);
     }
 
     public async Task<List<ComponentDto>> GetComponentsAsync(Expression<Func<Component, bool>>? filter = null)
     {
-        var query = _db.Components.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        query = query
-            .Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.ComponentOf)
-            .ThenInclude(cr => cr.Equipment);
-
-        var queryResult = await query.ToListAsync();
-
-        return queryResult
-            .Select(c => c.Adapt<ComponentDto>())
-            .ToList();
+        return await _componentRepository.GetManyAsync(filter);
     }
 
     public async Task<ComponentDto> AddComponentAsync(ComponentDto dto)
     {
-        var component = await _db.Components.AddAsync(dto.Adapt<Component>());
-        await _db.SaveChangesAsync();
-        return component.Entity.Adapt<ComponentDto>();
+        return await _componentRepository.AddAsync(dto);
     }
 
     public async Task<ComponentDto> UpdateComponentAsync(ComponentDto dto)
     {
-        var component = _db.Components.Update(dto.Adapt<Component>());
-        await _db.SaveChangesAsync();
-        return component.Entity.Adapt<ComponentDto>();
+        return await _componentRepository.UpdateAsync(dto);
     }
 
     public async Task<bool> RemoveComponentAsync(int id)
     {
-        var objFromDb = await _db.Components.FirstOrDefaultAsync(c => c.Id == id);
-
-        if (objFromDb is null)
-        {
-            return false;
-        }
-
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return true;
+        return await _componentRepository.RemoveAsync(id);
     }
 
     #endregion
 
-    #region Issue Methods
+    #region ComponentType Methods
+    public async Task<ComponentTypeDto?> GetComponentTypeAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    {
+        return await _componentRepository.GetTypeAsync(filter);
+    }
+    public async Task<List<ComponentTypeDto>> GetComponentTypesAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    {
+        return await _componentRepository.GetTypesAsync(filter);
+    }
+    public async Task<ComponentTypeDto> AddComponentTypeAsync(ComponentTypeDto dto)
+    {
+        return await _componentRepository.AddTypeAsync(dto);
+    }
 
+    public async Task<ComponentTypeDto> UpdateComponentTypeAsync(ComponentTypeDto dto)
+    {
+        return await _componentRepository.UpdateTypeAsync(dto);
+    }
+    public async Task<bool> RemoveComponentTypeAsync(int id)
+    {
+        return await _componentRepository.RemoveTypeAsync(id);
+    }
+    #endregion
+    
+    #region Issue Methods
     public async Task<IssueDto?> GetIssueAsync(Expression<Func<Issue, bool>>? filter = null)
     {
-        var query = _db.Issues.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        if (queryResult is null)
-        {
-            return null;
-        }
-
-        return queryResult.Adapt<IssueDto>();
+        return await _issueRepository.GetAsync(filter);
     }
 
     public async Task<List<IssueDto>> GetIssuesAsync(Expression<Func<Issue, bool>>? filter = null)
     {
-        var query = _db.Issues.AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.ToListAsync();
-
-        return queryResult
-            .Select(l => l.Adapt<IssueDto>())
-            .ToList();
+        return await _issueRepository.GetManyAsync(filter);
     }
 
     public async Task<IssueDto> AddIssueAsync(IssueDto dto)
     {
-        var issue = await _db.Issues.AddAsync(dto.Adapt<Issue>());
-        await _db.SaveChangesAsync();
-        return issue.Entity.Adapt<IssueDto>();
+        return await _issueRepository.AddAsync(dto);
     }
 
     public async Task<IssueDto> UpdateIssueAsync(IssueDto dto)
     {
-        var issue = _db.Issues.Update(dto.Adapt<Issue>());
-        await _db.SaveChangesAsync();
-        return issue.Entity.Adapt<IssueDto>();
+        return await _issueRepository.UpdateAsync(dto);
     }
 
     public async Task<bool> RemoveIssueAsync(int id)
     {
-        var objFromDb = await _db.Issues.FirstOrDefaultAsync(l => l.Id == id);
-
-        if (objFromDb is null)
-        {
-            return false;
-        }
-
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return true;
+        return await _issueRepository.RemoveAsync(id);
     }
-
     #endregion
 }

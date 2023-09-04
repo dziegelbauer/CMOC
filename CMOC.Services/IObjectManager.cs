@@ -53,6 +53,14 @@ public interface IObjectManager
     Task<ComponentDto> UpdateComponentAsync(ComponentDto dto);
     Task<bool> RemoveComponentAsync(int id);
     #endregion
+
+    #region ComponentType Methods
+    Task<ComponentTypeDto?> GetComponentTypeAsync(Expression<Func<ComponentType, bool>>? filter = null);
+    Task<List<ComponentTypeDto>> GetComponentTypesAsync(Expression<Func<ComponentType, bool>>? filter = null);
+    Task<ComponentTypeDto> AddComponentTypeAsync(ComponentTypeDto dto);
+    Task<ComponentTypeDto> UpdateComponentTypeAsync(ComponentTypeDto dto);
+    Task<bool> RemoveComponentTypeAsync(int id);
+    #endregion
     
     #region Issue Methods
     Task<IssueDto?> GetIssueAsync(Expression<Func<Issue, bool>>? filter = null);
