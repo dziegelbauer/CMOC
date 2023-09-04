@@ -7,6 +7,6 @@ public class CapabilitySupportRelationship
     public Service Service { get; set; }
     public int CapabilityId { get; set; }
     public Capability Capability { get; set; }
-    public int RedundantWithId { get; set; }
+    public int? RedundantWithId { get; set; }
     public ServiceRedundancy RedundantWith { get; set; }
 }

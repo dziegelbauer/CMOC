@@ -4,10 +4,11 @@
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CMOC.Data\CMOC.Data.csproj" />
+      <ProjectReference Include="..\CMOC.Services\CMOC.Services.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -18,8 +19,19 @@
     </ItemGroup>
 
 
+
+
     <ItemGroup>
-      <Folder Include="Pages\Admin\" />
+      <Folder Include="Pages\Admin\Components\" />
+    </ItemGroup>
+
+
+
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

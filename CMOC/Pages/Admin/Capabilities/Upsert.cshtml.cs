@@ -1,5 +1,7 @@
 ﻿using CMOC.Data;
 using CMOC.Domain;
+using CMOC.Services;
+using CMOC.Services.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -8,25 +10,26 @@ namespace CMOC.Pages.Admin.Capabilities;
 
 public class Upsert : PageModel
 {
-    private readonly AppDbContext _db;
+    private readonly IObjectManager _objectManager;
 
-    public Upsert(AppDbContext db)
+    public Upsert(IObjectManager objectManager)
     {
-        _db = db;
+        _objectManager = objectManager;
     }
 
     [BindProperty]
-    public Capability Capability { get; set; }
+    public CapabilityDto Capability { get; set; }
     
     public async Task OnGet(int? id)
     {
         if (id is not null)
         {
-            Capability = await _db.Capabilities.FirstOrDefaultAsync(u => u.Id == id) ?? new Capability();
+            Capability = await _objectManager
+                .GetCapabilityAsync(c => c.Id == id) ?? new CapabilityDto();
         }
         else
         {
-            Capability = new Capability();
+            Capability = new CapabilityDto();
         }
     }
     
@@ -34,14 +37,12 @@ public class Upsert : PageModel
     {
         if (Capability.Id == 0) // Create
         {
-            _db.Capabilities.Add(Capability);
+            await _objectManager.AddCapabilityAsync(Capability);
         }
         else // Update
         {
-            _db.Update(Capability);
+            await _objectManager.UpdateCapabilityAsync(Capability);
         }
-        
-        await _db.SaveChangesAsync();
         
         return RedirectToPage("/Admin/Capabilities/Index");
     }

@@ -41,13 +41,10 @@ namespace CMOC.Data.Migrations
                     b.Property<int>("CapabilityId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RedundantWithId")
+                    b.Property<int?>("RedundantWithId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ServiceId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ServiceRedundancyId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -57,8 +54,6 @@ namespace CMOC.Data.Migrations
                     b.HasIndex("RedundantWithId");
 
                     b.HasIndex("ServiceId");
-
-                    b.HasIndex("ServiceRedundancyId");
 
                     b.ToTable("CAPABILITY_SUPPORT_RELATIONSHIPS", (string)null);
                 });
@@ -70,6 +65,9 @@ namespace CMOC.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ComponentOfId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("IssueId")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("Operational")
@@ -85,6 +83,8 @@ namespace CMOC.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ComponentOfId");
+
+                    b.HasIndex("IssueId");
 
                     b.HasIndex("TypeId");
 
@@ -136,12 +136,18 @@ namespace CMOC.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("IssueId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("LocationId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool?>("OperationalOverride")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("SerialNumber")
                         .IsRequired()
@@ -152,10 +158,11 @@ namespace CMOC.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IssueId");
+
                     b.HasIndex("LocationId");
 
-                    b.HasIndex("TypeId")
-                        .IsUnique();
+                    b.HasIndex("TypeId");
 
                     b.ToTable("EQUIPMENT", (string)null);
                 });
@@ -184,6 +191,28 @@ namespace CMOC.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EQUIPMENT_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("CMOC.Domain.Issue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ExpectedCompletion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TicketNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Issues");
                 });
 
             modelBuilder.Entity("CMOC.Domain.Location", b =>
@@ -233,10 +262,13 @@ namespace CMOC.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("EquipmentId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("FailureThreshold")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("RedundantWithId")
+                    b.Property<int?>("RedundantWithId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ServiceId")
@@ -247,6 +279,8 @@ namespace CMOC.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EquipmentId");
+
                     b.HasIndex("RedundantWithId");
 
                     b.HasIndex("ServiceId");
@@ -254,21 +288,6 @@ namespace CMOC.Data.Migrations
                     b.HasIndex("TypeId");
 
                     b.ToTable("SERVICE_SUPPORT_RELATIONSHIPS", (string)null);
-                });
-
-            modelBuilder.Entity("EquipmentServiceSupportRelationship", b =>
-                {
-                    b.Property<int>("EquipmentId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("RelationshipsId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("EquipmentId", "RelationshipsId");
-
-                    b.HasIndex("RelationshipsId");
-
-                    b.ToTable("EquipmentServiceSupportRelationship");
                 });
 
             modelBuilder.Entity("CMOC.Domain.CapabilitySupportRelationship", b =>
@@ -280,20 +299,14 @@ namespace CMOC.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("CMOC.Domain.ServiceRedundancy", "RedundantWith")
-                        .WithMany()
-                        .HasForeignKey("RedundantWithId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Redundancies")
+                        .HasForeignKey("RedundantWithId");
 
                     b.HasOne("CMOC.Domain.Service", "Service")
                         .WithMany("Supports")
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("CMOC.Domain.ServiceRedundancy", null)
-                        .WithMany("Redundancies")
-                        .HasForeignKey("ServiceRedundancyId");
 
                     b.Navigation("Capability");
 
@@ -310,6 +323,10 @@ namespace CMOC.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CMOC.Domain.Issue", "Issue")
+                        .WithMany()
+                        .HasForeignKey("IssueId");
+
                     b.HasOne("CMOC.Domain.ComponentType", "Type")
                         .WithMany()
                         .HasForeignKey("TypeId")
@@ -317,6 +334,8 @@ namespace CMOC.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("ComponentOf");
+
+                    b.Navigation("Issue");
 
                     b.Navigation("Type");
                 });
@@ -342,6 +361,10 @@ namespace CMOC.Data.Migrations
 
             modelBuilder.Entity("CMOC.Domain.Equipment", b =>
                 {
+                    b.HasOne("CMOC.Domain.Issue", "Issue")
+                        .WithMany()
+                        .HasForeignKey("IssueId");
+
                     b.HasOne("CMOC.Domain.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
@@ -349,10 +372,12 @@ namespace CMOC.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("CMOC.Domain.EquipmentType", "Type")
-                        .WithOne()
-                        .HasForeignKey("CMOC.Domain.Equipment", "TypeId")
+                        .WithMany()
+                        .HasForeignKey("TypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Issue");
 
                     b.Navigation("Location");
 
@@ -361,11 +386,15 @@ namespace CMOC.Data.Migrations
 
             modelBuilder.Entity("CMOC.Domain.ServiceSupportRelationship", b =>
                 {
-                    b.HasOne("CMOC.Domain.EquipmentRedundancy", "RedundantWith")
-                        .WithMany("Redundancies")
-                        .HasForeignKey("RedundantWithId")
+                    b.HasOne("CMOC.Domain.Equipment", "Equipment")
+                        .WithMany("Relationships")
+                        .HasForeignKey("EquipmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("CMOC.Domain.EquipmentRedundancy", "RedundantWith")
+                        .WithMany("Redundancies")
+                        .HasForeignKey("RedundantWithId");
 
                     b.HasOne("CMOC.Domain.Service", "Service")
                         .WithMany("SupportedBy")
@@ -379,26 +408,13 @@ namespace CMOC.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Equipment");
+
                     b.Navigation("RedundantWith");
 
                     b.Navigation("Service");
 
                     b.Navigation("Type");
-                });
-
-            modelBuilder.Entity("EquipmentServiceSupportRelationship", b =>
-                {
-                    b.HasOne("CMOC.Domain.Equipment", null)
-                        .WithMany()
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CMOC.Domain.ServiceSupportRelationship", null)
-                        .WithMany()
-                        .HasForeignKey("RelationshipsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("CMOC.Domain.Capability", b =>
@@ -414,6 +430,8 @@ namespace CMOC.Data.Migrations
             modelBuilder.Entity("CMOC.Domain.Equipment", b =>
                 {
                     b.Navigation("Components");
+
+                    b.Navigation("Relationships");
                 });
 
             modelBuilder.Entity("CMOC.Domain.EquipmentRedundancy", b =>

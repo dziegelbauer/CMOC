@@ -1,0 +1,11 @@
+﻿services:
+  cmoc:
+    image: cmoc
+    build:
+      context: .
+      dockerfile: CMOC/Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://0.0.0.0:80

@@ -9,6 +9,9 @@ public class Equipment
     public EquipmentType Type { get; set; }
     public int LocationId { get; set; }
     public Location Location { get; set; }
+    public int? IssueId { get; set; }
+    public Issue Issue { get; set; }
     public List<ServiceSupportRelationship> Relationships { get; set; }
     public string Notes { get; set; }
+    public bool? OperationalOverride { get; set; }
 }

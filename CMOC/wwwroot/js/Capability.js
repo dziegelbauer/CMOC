@@ -1,4 +1,4 @@
-﻿var dataTable;
+﻿let dataTable;
 $(document).ready( function () {
     dataTable = $('#DT_load').DataTable({
         "ajax": {
@@ -32,7 +32,7 @@ function Delete(url)
 {
     swal.fire({
         title: "Are you sure?",
-        text: "Once deleted, you will not be able to recover this menu item!",
+        text: "Once deleted, you will not be able to recover this capability!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: '#3085d6',

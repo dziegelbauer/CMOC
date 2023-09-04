@@ -1,0 +1,2 @@
+rsync -avz -e 'ssh' bin/Release/net7.0/linux-arm64/publish/ deploy@ec2-54-166-214-229.compute-1.amazonaws.com:/home/deploy/apps/cmoc
+ssh deploy@ec2-54-166-214-229.compute-1.amazonaws.com "sudo supervisorctl restart cmoc"

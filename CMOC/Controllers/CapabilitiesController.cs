@@ -1,6 +1,5 @@
-﻿using CMOC.Data;
+﻿using CMOC.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Controllers;
 
@@ -8,35 +7,29 @@ namespace CMOC.Controllers;
 [ApiController]
 public class CapabilitiesController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IObjectManager _objectManager;
 
-    public CapabilitiesController(AppDbContext db)
+    public CapabilitiesController(IObjectManager objectManager)
     {
-        _db = db;
+        _objectManager = objectManager;
     }
 
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var capabilityList = await _db.Capabilities.ToListAsync();
+        var capabilityList = await _objectManager.GetCapabilitiesAsync();
         return Ok(new { data = capabilityList });
     }
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var objFromDb = await _db.Capabilities.FirstOrDefaultAsync(c => c.Id == id);
-
-        if (objFromDb is not null)
-        {
-            _db.Remove(objFromDb);
-            await _db.SaveChangesAsync();
-        }
-        
-        return Ok(new
-        {
-            success = true,
-            message = "Delete successful"
-        });
+        return await _objectManager.RemoveCapabilityAsync(id)
+            ? Ok(new
+            {
+                success = true,
+                message = $"Capability with id: {id} deleted."
+            })
+            : NotFound();
     }
 }
