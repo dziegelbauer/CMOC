@@ -55,4 +55,16 @@ public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, Equi
             .Select(e => e.Adapt<EquipmentDto>())
             .ToList();
     }
+
+    public override async Task<bool> RemoveAsync(int id)
+    {
+        var equipmentInUse = _db.ServiceSupportRelationships.Any(ssr => ssr.EquipmentId == id);
+
+        if (equipmentInUse)
+        {
+            return false;
+        }
+        
+        return await DefaultRemoveAsync<Equipment>(_db, id);
+    }
 }
