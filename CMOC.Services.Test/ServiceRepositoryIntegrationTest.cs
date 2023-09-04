@@ -20,8 +20,7 @@ public class ServiceRepositoryIntegrationTest
         optionsBuilder.UseInMemoryDatabase("test_db");
         optionsBuilder.EnableSensitiveDataLogging();
         _db = new AppDbContext(optionsBuilder.Options);
-
-        _db.Database.EnsureDeleted();
+        
         _db.Database.EnsureCreated();
         _db.Services.Add(new Service
         {
@@ -204,15 +203,6 @@ public class ServiceRepositoryIntegrationTest
             Assert.That(result2, Is.False);
             Assert.That(_db.Services.Count(), Is.EqualTo(2));
         });
-        
-        
-        _db.ServiceSupportRelationships.RemoveRange(_db.ServiceSupportRelationships);
-        _db.Equipment.RemoveRange(_db.Equipment);
-        _db.EquipmentTypes.RemoveRange(_db.EquipmentTypes);
-        _db.CapabilitySupportRelationships.RemoveRange(_db.CapabilitySupportRelationships);
-        _db.Capabilities.RemoveRange(_db.Capabilities);
-
-        _db.SaveChanges();
     }
 
     [Test]
@@ -230,7 +220,6 @@ public class ServiceRepositoryIntegrationTest
     [TearDown]
     public void Teardown()
     {
-        _db.Services.RemoveRange(_db.Services);
-        _db.SaveChanges();
+        _db.Database.EnsureDeleted();
     }
 }

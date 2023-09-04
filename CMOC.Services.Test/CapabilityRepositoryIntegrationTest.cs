@@ -187,7 +187,6 @@ public class CapabilityRepositoryIntegrationTest
     [TearDown]
     public void Teardown()
     {
-        _db.Capabilities.RemoveRange(_db.Capabilities);
-        _db.SaveChanges();
+        _db.Database.EnsureDeleted();
     }
 }

@@ -184,7 +184,6 @@ public class LocationRepositoryIntegrationTest
     [TearDown]
     public void Teardown()
     {
-        _db.Locations.RemoveRange(_db.Locations);
-        _db.SaveChanges();
+        _db.Database.EnsureDeleted();
     }
 }

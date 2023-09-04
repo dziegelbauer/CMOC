@@ -221,14 +221,6 @@ public class IssueRepositoryIntegrationTest
             Assert.That(result, Is.False);
             Assert.That(_db.Issues.Count(), Is.EqualTo(2));
         });
-        
-        _db.Components.RemoveRange(_db.Components);
-        _db.ComponentTypes.RemoveRange(_db.ComponentTypes);
-        _db.ComponentRelationships.RemoveRange(_db.ComponentRelationships);
-        _db.Equipment.RemoveRange(_db.Equipment);
-        _db.EquipmentTypes.RemoveRange(_db.EquipmentTypes);
-
-        _db.SaveChanges();
     }
 
     [Test]
@@ -246,7 +238,6 @@ public class IssueRepositoryIntegrationTest
     [TearDown]
     public void Teardown()
     {
-        _db.Issues.RemoveRange(_db.Issues);
-        _db.SaveChanges();
+        _db.Database.EnsureDeleted();
     }
 }

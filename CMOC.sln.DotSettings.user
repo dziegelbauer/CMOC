@@ -5,6 +5,7 @@
     &lt;TestId&gt;NUnit3x::EC7CF860-4DDA-40CB-8D5B-0AB618F589AF::net7.0::CMOC.Services.Test.IssueRepositoryIntegrationTest&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::EC7CF860-4DDA-40CB-8D5B-0AB618F589AF::net7.0::CMOC.Services.Test.CapabilityRepositoryIntegrationTest&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::EC7CF860-4DDA-40CB-8D5B-0AB618F589AF::net7.0::CMOC.Services.Test.ServiceRepositoryIntegrationTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::EC7CF860-4DDA-40CB-8D5B-0AB618F589AF::net7.0::CMOC.Services.Test.ComponentRepositoryIntegrationTest&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Mapster/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
