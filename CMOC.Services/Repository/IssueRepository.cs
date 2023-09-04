@@ -20,15 +20,6 @@ public class IssueRepository : Repository<Issue, IssueDto>, IIssueRepository
             return false;
         }
 
-        var issue = await _db.Issues.FindAsync(id);
-
-        if (issue is null)
-        {
-            return false;
-        }
-
-        _db.Issues.Remove(issue);
-        await _db.SaveChangesAsync();
-        return true;
+        return await DefaultRemoveAsync<Issue>(_db, id);
     }
 }

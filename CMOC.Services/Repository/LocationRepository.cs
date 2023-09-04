@@ -19,15 +19,6 @@ public class LocationRepository : Repository<Location, LocationDto>, ILocationRe
             return false;
         }
 
-        var location = await _db.Locations.FindAsync(id);
-
-        if (location is null)
-        {
-            return false;
-        }
-
-        _db.Locations.Remove(location);
-        await _db.SaveChangesAsync();
-        return true;
+        return await DefaultRemoveAsync<Location>(_db, id);
     }
 }

@@ -50,4 +50,16 @@ public class CapabilityRepository : Repository<Capability, CapabilityDto>, ICapa
             .Select(c => c.Adapt<CapabilityDto>())
             .ToList();
     }
+
+    public override async Task<bool> RemoveAsync(int id)
+    {
+        var capabilityInUse = _db.CapabilitySupportRelationships.Any(csr => csr.CapabilityId == id);
+
+        if (capabilityInUse)
+        {
+            return false;
+        }
+
+        return await DefaultRemoveAsync<Capability>(_db, id);
+    }
 }
