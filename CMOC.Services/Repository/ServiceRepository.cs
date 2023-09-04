@@ -110,4 +110,17 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
 
         return service.Entity.Adapt<ServiceDto>();
     }
+
+    public override async Task<bool> RemoveAsync(int id)
+    {
+        var serviceInUse = _db.ServiceSupportRelationships.Any(ssr => ssr.ServiceId == id)
+                           || _db.CapabilitySupportRelationships.Any(csr => csr.ServiceId == id);
+
+        if (serviceInUse)
+        {
+            return false;
+        }
+        
+        return await DefaultRemoveAsync<Service>(_db, id);
+    }
 }

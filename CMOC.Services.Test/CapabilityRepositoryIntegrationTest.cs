@@ -87,12 +87,12 @@ public class CapabilityRepositoryIntegrationTest
 
         _db.SaveChanges();
 
-        var results = await _capeDb.GetManyAsync(l => l.Name != "Magic");
+        var results = await _capeDb.GetManyAsync(c => c.Name != "Magic");
         
         Assert.Multiple(() =>
         {
             Assert.That(results, Has.Count.EqualTo(2));
-            Assert.That(results.FirstOrDefault(l => l.Name == "Magic"), Is.Null);
+            Assert.That(results.FirstOrDefault(c => c.Name == "Magic"), Is.Null);
         });
     }
 
@@ -110,7 +110,7 @@ public class CapabilityRepositoryIntegrationTest
         Assert.Multiple(() =>
         {
             Assert.That(_db.Capabilities.Count(),Is.EqualTo(2));
-            Assert.That(_db.Capabilities.FirstOrDefault(l => l.Name == "Test Capability"), Is.Not.Null);
+            Assert.That(_db.Capabilities.FirstOrDefault(c => c.Name == "Test Capability"), Is.Not.Null);
             Assert.That(newCapability.Id, Is.Not.Zero);
         });
     }
@@ -129,7 +129,7 @@ public class CapabilityRepositoryIntegrationTest
             Assert.That(updatedCapability.Id, Is.EqualTo(1));
             Assert.That(updatedCapability.Name, Is.EqualTo("Capability 2"));
             Assert.That(_db.Capabilities.Count(), Is.EqualTo(1));
-            Assert.That(_db.Capabilities.FirstOrDefault(l => l.Name == "Capability 2"), Is.Not.Null);
+            Assert.That(_db.Capabilities.FirstOrDefault(c => c.Name == "Capability 2"), Is.Not.Null);
         });
     }
 

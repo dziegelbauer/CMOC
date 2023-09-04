@@ -145,7 +145,7 @@ public class IssueRepositoryIntegrationTest
             Assert.That(updatedIssue.Id, Is.EqualTo(1));
             Assert.That(updatedIssue.Notes, Is.EqualTo("An Old Issue"));
             Assert.That(_db.Issues.Count(), Is.EqualTo(1));
-            Assert.That(_db.Issues.FirstOrDefault(l => l.Notes == "An Old Issue"), Is.Not.Null);
+            Assert.That(_db.Issues.FirstOrDefault(i => i.Notes == "An Old Issue"), Is.Not.Null);
         });
     }
 
