@@ -212,7 +212,7 @@ namespace CMOC.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Issues");
+                    b.ToTable("ISSUES", (string)null);
                 });
 
             modelBuilder.Entity("CMOC.Domain.Location", b =>

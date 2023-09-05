@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CMOC.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230903143321_Initial")]
+    [Migration("20230905030051_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -70,6 +70,9 @@ namespace CMOC.Data.Migrations
                     b.Property<int>("ComponentOfId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("IssueId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("Operational")
                         .HasColumnType("INTEGER");
 
@@ -83,6 +86,8 @@ namespace CMOC.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ComponentOfId");
+
+                    b.HasIndex("IssueId");
 
                     b.HasIndex("TypeId");
 
@@ -134,6 +139,9 @@ namespace CMOC.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("IssueId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("LocationId")
                         .HasColumnType("INTEGER");
 
@@ -153,10 +161,11 @@ namespace CMOC.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IssueId");
+
                     b.HasIndex("LocationId");
 
-                    b.HasIndex("TypeId")
-                        .IsUnique();
+                    b.HasIndex("TypeId");
 
                     b.ToTable("EQUIPMENT", (string)null);
                 });
@@ -185,6 +194,28 @@ namespace CMOC.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EQUIPMENT_TYPES", (string)null);
+                });
+
+            modelBuilder.Entity("CMOC.Domain.Issue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ExpectedCompletion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TicketNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ISSUES", (string)null);
                 });
 
             modelBuilder.Entity("CMOC.Domain.Location", b =>
@@ -295,6 +326,10 @@ namespace CMOC.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CMOC.Domain.Issue", "Issue")
+                        .WithMany()
+                        .HasForeignKey("IssueId");
+
                     b.HasOne("CMOC.Domain.ComponentType", "Type")
                         .WithMany()
                         .HasForeignKey("TypeId")
@@ -302,6 +337,8 @@ namespace CMOC.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("ComponentOf");
+
+                    b.Navigation("Issue");
 
                     b.Navigation("Type");
                 });
@@ -327,6 +364,10 @@ namespace CMOC.Data.Migrations
 
             modelBuilder.Entity("CMOC.Domain.Equipment", b =>
                 {
+                    b.HasOne("CMOC.Domain.Issue", "Issue")
+                        .WithMany()
+                        .HasForeignKey("IssueId");
+
                     b.HasOne("CMOC.Domain.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
@@ -334,10 +375,12 @@ namespace CMOC.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("CMOC.Domain.EquipmentType", "Type")
-                        .WithOne()
-                        .HasForeignKey("CMOC.Domain.Equipment", "TypeId")
+                        .WithMany()
+                        .HasForeignKey("TypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Issue");
 
                     b.Navigation("Location");
 

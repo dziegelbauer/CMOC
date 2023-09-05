@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -62,6 +63,21 @@ namespace CMOC.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ISSUES",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TicketNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    Notes = table.Column<string>(type: "TEXT", nullable: false),
+                    ExpectedCompletion = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ISSUES", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "LOCATIONS",
                 columns: table => new
                 {
@@ -108,6 +124,7 @@ namespace CMOC.Data.Migrations
                     SerialNumber = table.Column<string>(type: "TEXT", nullable: false),
                     TypeId = table.Column<int>(type: "INTEGER", nullable: false),
                     LocationId = table.Column<int>(type: "INTEGER", nullable: false),
+                    IssueId = table.Column<int>(type: "INTEGER", nullable: true),
                     Notes = table.Column<string>(type: "TEXT", nullable: false),
                     OperationalOverride = table.Column<bool>(type: "INTEGER", nullable: true)
                 },
@@ -120,6 +137,11 @@ namespace CMOC.Data.Migrations
                         principalTable: "EQUIPMENT_TYPES",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EQUIPMENT_ISSUES_IssueId",
+                        column: x => x.IssueId,
+                        principalTable: "ISSUES",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_EQUIPMENT_LOCATIONS_LocationId",
                         column: x => x.LocationId,
@@ -236,7 +258,8 @@ namespace CMOC.Data.Migrations
                     SerialNumber = table.Column<string>(type: "TEXT", nullable: false),
                     TypeId = table.Column<int>(type: "INTEGER", nullable: false),
                     Operational = table.Column<bool>(type: "INTEGER", nullable: false),
-                    ComponentOfId = table.Column<int>(type: "INTEGER", nullable: false)
+                    ComponentOfId = table.Column<int>(type: "INTEGER", nullable: false),
+                    IssueId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -253,6 +276,11 @@ namespace CMOC.Data.Migrations
                         principalTable: "COMPONENT_TYPES",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_COMPONENTS_ISSUES_IssueId",
+                        column: x => x.IssueId,
+                        principalTable: "ISSUES",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -286,9 +314,19 @@ namespace CMOC.Data.Migrations
                 column: "ComponentOfId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_COMPONENTS_IssueId",
+                table: "COMPONENTS",
+                column: "IssueId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_COMPONENTS_TypeId",
                 table: "COMPONENTS",
                 column: "TypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EQUIPMENT_IssueId",
+                table: "EQUIPMENT",
+                column: "IssueId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EQUIPMENT_LocationId",
@@ -298,8 +336,7 @@ namespace CMOC.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_EQUIPMENT_TypeId",
                 table: "EQUIPMENT",
-                column: "TypeId",
-                unique: true);
+                column: "TypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SERVICE_SUPPORT_RELATIONSHIPS_EquipmentId",
@@ -357,6 +394,9 @@ namespace CMOC.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "EQUIPMENT_TYPES");
+
+            migrationBuilder.DropTable(
+                name: "ISSUES");
 
             migrationBuilder.DropTable(
                 name: "LOCATIONS");
