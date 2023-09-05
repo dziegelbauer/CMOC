@@ -18,14 +18,14 @@
       </PackageReference>
     </ItemGroup>
 
-
-
+    <ItemGroup>
+        <Content Include="cmoc.db" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Pages\Admin\Components\" />
     </ItemGroup>
-
-
+    
 
 
     <ItemGroup>
