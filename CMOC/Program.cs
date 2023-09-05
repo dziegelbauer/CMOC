@@ -25,15 +25,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-var db = app.Services.GetRequiredService<AppDbContext>();
-db.Database.EnsureDeleted();
-db.Database.EnsureCreated();
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapRazorPages();
