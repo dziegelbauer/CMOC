@@ -20,6 +20,16 @@ public class EquipmentController : ControllerBase
         var equipmentList = await _objectManager.GetEquipmentItemsAsync();
         return Ok(new { data = equipmentList });
     }
+
+    [HttpPost("{id:int}/Issue/{issueId:int}")]
+    public async Task<IActionResult> PostIssue(int id, int issueId)
+    {
+        var equipment = await _objectManager.AssignIssueToEquipment(id, issueId);
+
+        return equipment is not null
+            ? Ok(equipment)
+            : NotFound();
+    }
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)

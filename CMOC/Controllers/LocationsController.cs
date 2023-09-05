@@ -1,6 +1,5 @@
-using CMOC.Data;
+using CMOC.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Controllers;
 
@@ -8,37 +7,29 @@ namespace CMOC.Controllers;
 [ApiController]
 public class LocationsController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IObjectManager _objectManager;
 
-    public LocationsController(AppDbContext db)
+    public LocationsController(IObjectManager objectManager)
     {
-        _db = db;
+        _objectManager = objectManager;
     }
     
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var locationsList = await _db.Locations.ToListAsync();
+        var locationsList = await _objectManager.GetLocationsAsync();
         return Ok(new { data = locationsList });
     }
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var objFromDb = await _db.Locations.FirstOrDefaultAsync(c => c.Id == id);
-
-        if (objFromDb is null)
-        {
-            return NotFound();
-        }
-        
-        _db.Remove(objFromDb);
-        await _db.SaveChangesAsync();
-
-        return Ok(new
-        {
-            success = true,
-            message = "Delete successful"
-        });
+        return await _objectManager.RemoveLocationAsync(id)
+            ? Ok(new
+            {
+                success = true,
+                message = "Delete successful"
+            })
+            : NotFound();
     }
 }

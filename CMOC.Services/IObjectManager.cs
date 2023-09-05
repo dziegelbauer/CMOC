@@ -36,6 +36,7 @@ public interface IObjectManager
     Task<EquipmentDto> AddEquipmentItemAsync(EquipmentDto dto);
     Task<EquipmentDto> UpdateEquipmentItemAsync(EquipmentDto dto);
     Task<bool> RemoveEquipmentItemAsync(int id);
+    Task<EquipmentDto?> AssignIssueToEquipment(int equipmentId, int issueId);
     #endregion
 
     #region EquipmentType Methods
@@ -52,6 +53,7 @@ public interface IObjectManager
     Task<ComponentDto> AddComponentAsync(ComponentDto dto);
     Task<ComponentDto> UpdateComponentAsync(ComponentDto dto);
     Task<bool> RemoveComponentAsync(int id);
+    Task<ComponentDto?> AssignIssueToComponent(int componentId, int issueId);
     #endregion
 
     #region ComponentType Methods

@@ -21,6 +21,16 @@ public class ComponentsController : ControllerBase
         return Ok(new { data = equipmentList });
     }
     
+    [HttpPost("{id:int}/Issue/{issueId:int}")]
+    public async Task<IActionResult> PostIssue(int id, int issueId)
+    {
+        var component = await _objectManager.AssignIssueToComponent(id, issueId);
+
+        return component is not null
+            ? Ok(component)
+            : NotFound();
+    }
+    
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

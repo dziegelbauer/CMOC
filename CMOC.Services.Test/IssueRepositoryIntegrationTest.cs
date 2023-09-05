@@ -162,7 +162,7 @@ public class IssueRepositoryIntegrationTest
     }
 
     [Test]
-    public async Task CannotRemoveIssueInUse()
+    public async Task RemovingIssueInUseClearsIds()
     {
         _db.Issues.Add(new Issue
         {
@@ -178,7 +178,7 @@ public class IssueRepositoryIntegrationTest
             Name = "Test Equipment"
         });
         
-        _db.Equipment.Add(new Equipment
+        var usingEquipment = _db.Equipment.Add(new Equipment
         {
             Id = 1,
             LocationId = 1,
@@ -186,7 +186,7 @@ public class IssueRepositoryIntegrationTest
             SerialNumber = "",
             TypeId = 1,
             IssueId = 1
-        });
+        }).Entity;
 
         _db.ComponentRelationships.Add(new ComponentRelationship
         {
@@ -202,7 +202,7 @@ public class IssueRepositoryIntegrationTest
             Name = "Test Component"
         });
 
-        _db.Components.Add(new Component
+        var usingComponent = _db.Components.Add(new Component
         {
             Id = 1,
             ComponentOfId = 1,
@@ -210,16 +210,20 @@ public class IssueRepositoryIntegrationTest
             TypeId = 1,
             SerialNumber = "1",
             IssueId = 2
-        });
+        }).Entity;
 
         _db.SaveChanges();
 
         var result = await _issueDb.RemoveAsync(1);
+        var result2 = await _issueDb.RemoveAsync(2);
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
-            Assert.That(_db.Issues.Count(), Is.EqualTo(2));
+            Assert.That(result, Is.True);
+            Assert.That(result2, Is.True);
+            Assert.That(_db.Issues.Count(), Is.EqualTo(0));
+            Assert.That(usingComponent.IssueId, Is.Null);
+            Assert.That(usingEquipment.IssueId, Is.Null);
         });
     }
 

@@ -1,6 +1,7 @@
 ﻿using CMOC.Data;
 using CMOC.Domain;
 using CMOC.Services.Dto;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Services.Repository;
 
@@ -12,13 +13,22 @@ public class IssueRepository : Repository<Issue, IssueDto>, IIssueRepository
 
     public override async Task<bool> RemoveAsync(int id)
     {
-        var issueInUse = _db.Equipment.Any(e => e.LocationId == id) 
-                         || _db.Components.Any(c => c.IssueId == id);
+        await _db.Equipment
+            .Where(e => e.IssueId == id)
+            .ForEachAsync(e =>
+            {
+                e.IssueId = null;
+                _db.Equipment.Update(e);
+            });
+        await _db.Components
+            .Where(c => c.IssueId == id)
+            .ForEachAsync(c =>
+            {
+                c.IssueId = null;
+                _db.Components.Update(c);
+            });
 
-        if (issueInUse)
-        {
-            return false;
-        }
+        await _db.SaveChangesAsync();
 
         return await DefaultRemoveAsync<Issue>(_db, id);
     }

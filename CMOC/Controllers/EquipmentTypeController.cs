@@ -42,11 +42,15 @@ public class EquipmentTypeController : ControllerBase
             : BadRequest();
     }
     
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
         return await _objectManager.RemoveEquipmentTypeAsync(id)
-            ? NoContent()
+            ? Ok(new
+            {
+                success = true,
+                message = $"Equipment type with id: {id} deleted."
+            })
             : NotFound();
     }
 }

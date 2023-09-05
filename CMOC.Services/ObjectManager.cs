@@ -175,6 +175,34 @@ public class ObjectManager : IObjectManager
         return await _equipmentRepository.RemoveTypeAsync(id);
     }
 
+    public async Task<EquipmentDto?> AssignIssueToEquipment(int equipmentId, int issueId)
+    {
+        var equipment = await _equipmentRepository.GetAsync(e => e.Id == equipmentId);
+
+        if (equipment is null)
+        {
+            return null;
+        }
+        
+        var issue = await _issueRepository.GetAsync(i => i.Id == issueId);
+
+        if (issue is null)
+        {
+            return null;
+        }
+
+        equipment.IssueId = issueId;
+
+        var updatedEquipment = await _equipmentRepository.UpdateAsync(equipment);
+
+        if (updatedEquipment.IssueId is null)
+        {
+            return null;
+        }
+
+        return await _equipmentRepository.GetAsync(e => e.Id == equipmentId);
+    }
+    
     #endregion
 
     #region Component Methods
@@ -255,5 +283,34 @@ public class ObjectManager : IObjectManager
     {
         return await _issueRepository.RemoveAsync(id);
     }
+    
+    public async Task<ComponentDto?> AssignIssueToComponent(int componentId, int issueId)
+    {
+        var component = await _componentRepository.GetAsync(e => e.Id == componentId);
+
+        if (component is null)
+        {
+            return null;
+        }
+        
+        var issue = await _issueRepository.GetAsync(i => i.Id == issueId);
+
+        if (issue is null)
+        {
+            return null;
+        }
+
+        component.IssueId = issueId;
+
+        var updatedComponent = await _componentRepository.UpdateAsync(component);
+
+        if (updatedComponent.IssueId is null)
+        {
+            return null;
+        }
+
+        return await _componentRepository.GetAsync(e => e.Id == componentId);
+    }
+
     #endregion
 }

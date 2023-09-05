@@ -1,7 +1,5 @@
-﻿using CMOC.Data;
-using CMOC.Services;
+﻿using CMOC.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Controllers;
 
