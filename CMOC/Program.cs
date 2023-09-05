@@ -24,7 +24,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.Services.GetRequiredService<AppDbContext>().Database.EnsureCreated();
+var db = app.Services.GetRequiredService<AppDbContext>();
+db.Database.EnsureDeleted();
+db.Database.EnsureCreated();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
