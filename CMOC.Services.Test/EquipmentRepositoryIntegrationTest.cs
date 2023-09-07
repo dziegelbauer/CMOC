@@ -1,5 +1,6 @@
 ﻿namespace CMOC.Services.Test;
 
+[TestFixture]
 public class EquipmentRepositoryIntegrationTest
 {
     private AppDbContext _db;

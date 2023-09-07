@@ -43,6 +43,9 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(e => e.IssueId)
             .IsRequired(false);
+        modelBuilder.Entity<Component>()
+            .Navigation(c => c.Type)
+            .AutoInclude();
 
         modelBuilder.Entity<ComponentType>()
             .ToTable("COMPONENT_TYPES");
@@ -57,6 +60,9 @@ public class AppDbContext : DbContext
             .HasOne<ComponentType>(cr => cr.Type)
             .WithMany()
             .HasForeignKey(cr => cr.TypeId);
+        modelBuilder.Entity<ComponentRelationship>()
+            .Navigation(cr => cr.Type)
+            .AutoInclude();
 
         modelBuilder.Entity<Equipment>()
             .ToTable("EQUIPMENT");
@@ -73,6 +79,12 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(e => e.IssueId)
             .IsRequired(false);
+        modelBuilder.Entity<Equipment>()
+            .Navigation(e => e.Type)
+            .AutoInclude();
+        modelBuilder.Entity<Equipment>()
+            .Navigation(e => e.Location)
+            .AutoInclude();
 
         modelBuilder.Entity<EquipmentType>()
             .ToTable("EQUIPMENT_TYPES");

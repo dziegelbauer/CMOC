@@ -6,6 +6,7 @@ public class EquipmentDto
     public string? SerialNumber { get; set; }
     public List<ComponentDto> Components { get; set; } = new List<ComponentDto>();
     public int TypeId { get; set; }
+    public string TypeName { get; set; } = string.Empty;
     public int LocationId { get; set; }
     public string Location { get; set; } = string.Empty;
     public List<int> SupportedServices { get; set; } = new List<int>();

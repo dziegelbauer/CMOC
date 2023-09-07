@@ -1,5 +1,6 @@
 namespace CMOC.Services.Test;
 
+[TestFixture]
 public class CapabilityRepositoryIntegrationTest
 {
     private AppDbContext _db;

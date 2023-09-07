@@ -41,7 +41,10 @@ public static class MapsterConfig
                 src => src.IssueId != null)
             .Map(dest => dest.Status, src => src.Operational 
                 ? ObjectStatus.FullyCapable 
-                : ObjectStatus.NonCapable);
+                : ObjectStatus.NonCapable)
+            .Map(dest => dest.EquipmentId, src => src.ComponentOf.EquipmentId)
+            .Map(dest => dest.Equipment, src => 
+                $"{src.ComponentOf.Equipment.Type.Name} ({src.ComponentOf.Equipment.SerialNumber})");
 
         TypeAdapterConfig<Equipment, EquipmentDto>
             .NewConfig()
@@ -57,7 +60,9 @@ public static class MapsterConfig
             .Map(dest => dest.IssueId, src => src.IssueId)
             .Map(dest => dest.Issue, src => src.Issue!.Adapt<IssueDto>(), 
                 src => src.IssueId != null)
-            .Map(dest => dest.Status, src => src.ParseStatusGraph());
+            .Map(dest => dest.Status, src => src.ParseStatusGraph())
+            .Map(dest => dest.TypeName, src => src.Type.Name, 
+                src => src.TypeId != 0);
 
         TypeAdapterConfig<Service, ServiceDto>
             .NewConfig()

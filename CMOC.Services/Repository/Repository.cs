@@ -79,18 +79,18 @@ public abstract class Repository<T, TDto> : IRepository<T, TDto>
         where TU : class
         where TUDto : class
     {
-        var issue = await db.Set<TU>().AddAsync(dto.Adapt<TU>());
+        var entity = await db.Set<TU>().AddAsync(dto.Adapt<TU>());
         await db.SaveChangesAsync();
-        return issue.Entity.Adapt<TU, TUDto>();
+        return await DefaultGetAsync<TU, TUDto>(db) ?? throw new Exception();
     }
     
     protected static async Task<TUDto> DefaultUpdateAsync<TU, TUDto>(AppDbContext db, TUDto dto)
         where TU : class
         where TUDto : class
     {
-        var issue = db.Set<TU>().Update(dto.Adapt<TU>());
+        var entity = db.Set<TU>().Update(dto.Adapt<TU>());
         await db.SaveChangesAsync();
-        return issue.Entity.Adapt<TU, TUDto>();
+        return await DefaultGetAsync<TU, TUDto>(db) ?? throw new Exception();
     }
 
     protected static async Task<bool> DefaultRemoveAsync<TU>(AppDbContext db, int id)

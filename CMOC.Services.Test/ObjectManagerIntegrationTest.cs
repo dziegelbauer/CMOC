@@ -1,5 +1,6 @@
 ﻿namespace CMOC.Services.Test;
 
+[TestFixture]
 public class ObjectManagerIntegrationTest
 {
     private AppDbContext _db;
@@ -25,6 +26,12 @@ public class ObjectManagerIntegrationTest
         {
             Id = 1,
             Name = "Test Equipment"
+        });
+
+        _db.Locations.Add(new Location
+        {
+            Id = 1,
+            Name = "West Texas"
         });
         
         _db.Equipment.Add(new Equipment

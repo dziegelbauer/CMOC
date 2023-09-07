@@ -1,0 +1,82 @@
+﻿@page
+@model CMOC.Pages.Admin.Components.Upsert
+
+<form method="post" enctype="multipart/form-data">
+    <input asp-for="Component.Id" hidden/>
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <div class="col-9">
+                <h2 class="text-primary pl-3">
+                    @(Model.Component.Id == 0 ? "Create" : "Update") Component
+                </h2>
+                <hr/>
+                <div class="mb-3 form-floating">
+                    <select asp-for="Component.TypeId" asp-items="Model.ComponentTypes" class="form-select">
+                        <option disabled selected>Select Component Type</option>
+                    </select>
+                    <label asp-for="Component.TypeId">Type</label>
+                    <span asp-validation-for="Component.TypeId" class="text-danger"></span>
+                </div>
+                <div class="mb-3 form-floating">
+                    <input type="text" asp-for="@Model.Component.SerialNumber" class="form-control"/>
+                    <label asp-for="Component.SerialNumber">Serial Number</label>
+                    <span asp-validation-for="Component.SerialNumber" class="text-danger"></span>
+                </div>
+                <div class="mb-3 form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" asp-for="Component.Operational">
+                    <label class="form-check-label" asp-for="Component.Operational">Component Operational</label>
+                </div>
+                <div class="mb-3 form-floating">
+                    <select asp-for="Component.EquipmentId" asp-items="Model.Equipment" class="form-select">
+                        <option disabled selected>Select Equipment</option>
+                    </select>
+                    <label asp-for="Component.EquipmentId">Equipment</label>
+                    <span asp-validation-for="Component.EquipmentId" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="row pb-2">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTypeDialog">
+                        Add new component type
+                    </button>
+                </div>
+            </div>
+        </div>
+        @if (Model.Component.Id == 0)
+        {
+            <button type="submit" class="btn btn-primary" style="width: 150px;">Create</button>
+        }
+        else
+        {
+            <button type="submit" class="btn btn-primary" style="width: 150px;">Update</button>
+        }
+        <a asp-page="/Admin/Components/Index" class="btn btn-secondary" style="width: 150px;">Back to List</a>
+    </div>
+</form>
+<div class="modal" tabindex="-1" id="newTypeDialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="newTypeForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Component Type</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="typeName">New Type Name</label>
+                        <input type="text" id="typeName" class="form-control"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal" id="saveType">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/js/UpsertComponent.js"></script>
+}

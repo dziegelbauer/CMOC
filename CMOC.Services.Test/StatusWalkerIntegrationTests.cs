@@ -1,5 +1,6 @@
 ﻿namespace CMOC.Services.Test;
 
+[TestFixture]
 public class StatusWalkerIntegrationTests
 {
     private AppDbContext _db;
@@ -21,6 +22,12 @@ public class StatusWalkerIntegrationTests
 
         _db.SaveChanges();
         _db.ChangeTracker.Clear();
+    }
+    
+    [Test]
+    public void TestCapabilityStatusWalk()
+    {
+        Assert.Pass();
     }
 
     [TearDown]

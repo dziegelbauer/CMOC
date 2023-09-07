@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CMOC.Controllers;
 
-[Route("ap1/v1/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 public class ComponentsController : ControllerBase
 {
@@ -17,8 +17,8 @@ public class ComponentsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var equipmentList = await _objectManager.GetEquipmentItemsAsync();
-        return Ok(new { data = equipmentList });
+        var componentsList = await _objectManager.GetComponentsAsync();
+        return Ok(new { data = componentsList });
     }
     
     [HttpPost("{id:int}/Issue/{issueId:int}")]

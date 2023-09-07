@@ -1,16 +1,16 @@
 ﻿namespace CMOC.Services.Test;
 
+[TestFixture]
 public class ComponentRepositoryIntegrationTest
 {
     private AppDbContext _db;
     private IComponentRepository _componentDb;
-    
+
     [OneTimeSetUp]
     public void EnvironmentSetup()
     {
-        
     }
-    
+
     [SetUp]
     public void Setup()
     {
@@ -18,7 +18,7 @@ public class ComponentRepositoryIntegrationTest
         optionsBuilder.UseInMemoryDatabase("test_db");
         optionsBuilder.EnableSensitiveDataLogging();
         _db = new AppDbContext(optionsBuilder.Options);
-        
+
         _db.Database.EnsureCreated();
 
         _db.ComponentTypes.Add(new ComponentType
@@ -27,12 +27,25 @@ public class ComponentRepositoryIntegrationTest
             Name = "Test Component Type"
         });
 
+        _db.EquipmentTypes.Add(new EquipmentType
+        {
+            Id = 1,
+            Name = "Test Equipment"
+        });
+
+        _db.Locations.Add(new Location
+        {
+            Id = 1,
+            Name = "West Texas"
+        });
+
         _db.Equipment.Add(new Equipment
         {
             Id = 1,
             LocationId = 1,
             Notes = "",
-            SerialNumber = "1"
+            SerialNumber = "1",
+            TypeId = 1
         });
 
         _db.ComponentRelationships.Add(new ComponentRelationship
@@ -42,13 +55,14 @@ public class ComponentRepositoryIntegrationTest
             TypeId = 1,
             FailureThreshold = 1
         });
-        
+
         _db.Components.Add(new Component
         {
             Id = 1,
             SerialNumber = "Test Component",
             ComponentOfId = 1,
-            TypeId = 1
+            TypeId = 1,
+            Operational = true
         });
 
         _db.SaveChanges();
@@ -61,7 +75,7 @@ public class ComponentRepositoryIntegrationTest
     public async Task CanGetComponent()
     {
         var existingComponent = await _componentDb.GetAsync(c => c.SerialNumber == "Test Component");
-        
+
         Assert.Multiple(() =>
         {
             Assert.That(existingComponent, Is.Not.Null);
@@ -69,10 +83,11 @@ public class ComponentRepositoryIntegrationTest
         });
     }
 
+
     [Test]
     public async Task CanGetMultipleComponents()
     {
-        _db.Components.AddRange(new []
+        _db.Components.AddRange(new[]
         {
             new Component
             {
@@ -90,17 +105,17 @@ public class ComponentRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _componentDb.GetManyAsync();
-        
+
         Assert.That(results, Has.Count.EqualTo(3));
     }
-    
+
     [Test]
     public async Task CanGetMultipleFilteredComponents()
     {
-        _db.Components.AddRange(new []
+        _db.Components.AddRange(new[]
         {
             new Component
             {
@@ -121,7 +136,7 @@ public class ComponentRepositoryIntegrationTest
         _db.SaveChanges();
 
         var results = await _componentDb.GetManyAsync(c => c.SerialNumber != "Test Component 2");
-        
+
         Assert.Multiple(() =>
         {
             Assert.That(results, Has.Count.EqualTo(2));
@@ -141,10 +156,10 @@ public class ComponentRepositoryIntegrationTest
             ComponentOfId = 1,
             TypeId = 1
         });
-        
+
         Assert.Multiple(() =>
         {
-            Assert.That(_db.Components.Count(),Is.EqualTo(2));
+            Assert.That(_db.Components.Count(), Is.EqualTo(2));
             Assert.That(_db.Components.FirstOrDefault(c => c.SerialNumber == "Test addition"), Is.Not.Null);
             Assert.That(newComponent.Id, Is.Not.Zero);
         });
@@ -158,9 +173,10 @@ public class ComponentRepositoryIntegrationTest
             Id = 1,
             SerialNumber = "Updated Component",
             ComponentOfId = 1,
-            TypeId = 1
+            TypeId = 1,
+            EquipmentId = 1
         });
-        
+
         Assert.Multiple(() =>
         {
             Assert.That(updatedComponent.Id, Is.EqualTo(1));
@@ -174,7 +190,7 @@ public class ComponentRepositoryIntegrationTest
     public async Task CanRemoveComponent()
     {
         var result = await _componentDb.RemoveAsync(1);
-        
+
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.True);
@@ -186,7 +202,7 @@ public class ComponentRepositoryIntegrationTest
     public async Task RemoveNonExistingComponentIsFalse()
     {
         var result = await _componentDb.RemoveAsync(2);
-        
+
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.False);
