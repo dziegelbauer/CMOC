@@ -34,9 +34,25 @@
                     <label asp-for="Equipment.Notes">Notes</label>
                     <span asp-validation-for="Equipment.Notes" class="text-danger"></span>
                 </div>
+                <div class="mb-3 form-floating">
+                    <span>component mods here</span>
+                </div>
+                <div class="mb-3">
+                    <span>Services Supported:</span>
+                    <ul>
+                        @for (var i = 0; i < Model.SupportedServices.Count; i++)
+                        {
+                            <li class="form-check form-switch">
+                                <input type="hidden" asp-for="SupportedServices[i].Value"/>
+                                <input class="form-check-input" type="checkbox" role="switch" id="service_@i" asp-for="SupportedServices[i].Checked"/>
+                                <label class="form-check-label" for="service_@i">@Model.SupportedServices[i].Text</label>
+                            </li>
+                        }
+                    </ul>
+                </div>
                 <div class="mb-3">
                     <div class="col-7">
-                        
+
                     </div>
                     <div class="col-2">
                         <button class="btn"></button>
@@ -49,14 +65,6 @@
                         Add new equipment type
                     </button>
                 </div>
-                @if (Model.Equipment.Id != 0)
-                {
-                    <div class="row pb-2">
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newComponentDialog">
-                            Add new component
-                        </button>
-                    </div>
-                }
             </div>
         </div>
         @if (Model.Equipment.Id == 0)

@@ -47,13 +47,20 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
         query = query
             .Include(s => s.SupportedBy)
             .ThenInclude(ssr => ssr.Equipment)
+            .ThenInclude(e => e.Components)
+            .ThenInclude(cr => cr.Components)
             .Include(s => s.Supports)
             .ThenInclude(csr => csr.Capability);
 
         var queryResult = await query.ToListAsync();
 
         return queryResult
-            .Select(s => s.Adapt<ServiceDto>())
+            .Select(s =>
+            {
+                var dto = s.Adapt<ServiceDto>();
+                dto.Status = s.ParseStatusGraph();
+                return dto;
+            })
             .ToList();
     }
 
@@ -74,7 +81,7 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
         }
 
         await _db.SaveChangesAsync();
-        return service.Entity.Adapt<ServiceDto>();
+        return await GetAsync(s => s.Id == service.Entity.Id) ?? throw new Exception();
     }
 
     public override async Task<ServiceDto> UpdateAsync(ServiceDto dto)
@@ -108,7 +115,7 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
 
         await _db.SaveChangesAsync();
 
-        return service.Entity.Adapt<ServiceDto>();
+        return await GetAsync(s => s.Id == service.Entity.Id) ?? throw new Exception();
     }
 
     public override async Task<bool> RemoveAsync(int id)

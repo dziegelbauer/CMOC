@@ -73,7 +73,7 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
         component.ComponentOf = componentRelationship;
         await _db.Components.AddAsync(component);
         await _db.SaveChangesAsync();
-        return component.Adapt<ComponentDto>();
+        return await GetAsync(c => c.Id == component.Id) ?? throw new Exception();
     }
 
     public override async Task<ComponentDto> UpdateAsync(ComponentDto dto)

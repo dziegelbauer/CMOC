@@ -24,7 +24,11 @@ public class CapabilityRepository : Repository<Capability, CapabilityDto>, ICapa
 
         query = query
             .Include(c => c.SupportedBy)
-            .ThenInclude(csr => csr.Service);
+            .ThenInclude(csr => csr.Service)
+            .ThenInclude(s => s.SupportedBy)
+            .ThenInclude(ssr => ssr.Equipment)
+            .ThenInclude(e => e.Components)
+            .ThenInclude(cr => cr.Components);
 
         var queryResult = await query.FirstOrDefaultAsync();
 
@@ -42,12 +46,21 @@ public class CapabilityRepository : Repository<Capability, CapabilityDto>, ICapa
 
         query = query
             .Include(c => c.SupportedBy)
-            .ThenInclude(csr => csr.Service);
+            .ThenInclude(csr => csr.Service)
+            .ThenInclude(s => s.SupportedBy)
+            .ThenInclude(ssr => ssr.Equipment)
+            .ThenInclude(e => e.Components)
+            .ThenInclude(cr => cr.Components);
 
         var queryResult = await query.ToListAsync();
 
         return queryResult
-            .Select(c => c.Adapt<CapabilityDto>())
+            .Select(c =>
+            {
+                var dto = c.Adapt<CapabilityDto>();
+                dto.Status = c.ParseStatusGraph();
+                return dto;
+            })
             .ToList();
     }
 

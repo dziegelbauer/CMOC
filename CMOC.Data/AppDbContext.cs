@@ -46,6 +46,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Component>()
             .Navigation(c => c.Type)
             .AutoInclude();
+        
 
         modelBuilder.Entity<ComponentType>()
             .ToTable("COMPONENT_TYPES");
@@ -111,6 +112,9 @@ public class AppDbContext : DbContext
             .HasOne<EquipmentType>(ssr => ssr.Type)
             .WithMany()
             .HasForeignKey(ssr => ssr.TypeId);
+        modelBuilder.Entity<ServiceSupportRelationship>()
+            .Navigation(ssr => ssr.Type)
+            .AutoInclude();
 
         modelBuilder.Entity<EquipmentRedundancy>()
             .ToTable("EQUIPMENT_REDUNDANCIES");

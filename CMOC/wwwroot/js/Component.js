@@ -15,7 +15,7 @@ $(document).ready( function () {
                 "render": function (data, type, row, meta ) {
                     return data === true
                         ? `<i class="bi bi-check-circle-fill" style="color: green"></i>`
-                        : `<i class="bi bi-x-circle-fill" style="color: red"></i> ${data}`
+                        : `<i class="bi bi-x-circle-fill" style="color: red"></i>`
                 },
                 "width": "10%"
             },

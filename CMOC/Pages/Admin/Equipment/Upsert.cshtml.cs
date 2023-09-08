@@ -1,5 +1,6 @@
 ﻿using CMOC.Services;
 using CMOC.Services.Dto;
+using CMOC.UI;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -24,9 +25,19 @@ public class Upsert : PageModel
     public List<SelectListItem> EquipmentTypes { get; set; }
     [BindProperty]
     public List<SelectListItem> Locations { get; set; }
+    [BindProperty]
+    public List<CheckedListRow> SupportedServices { get; set; }
     
     public async Task OnGet(int? id)
     {
+        SupportedServices = (await _objectManager.GetServicesAsync())
+            .Select(c => new CheckedListRow
+            {
+                Text = c.Name,
+                Value = c.Id,
+                Checked = false
+            }).ToList();
+        
         if (id is not null)
         {
             Equipment = await _objectManager
@@ -52,6 +63,16 @@ public class Upsert : PageModel
     
     public async Task<IActionResult> OnPost()
     {
+        Equipment.SupportedServices.Clear();
+        
+        foreach (var service in SupportedServices)
+        {
+            if (service.Checked)
+            {
+                Equipment.SupportedServices.Add(service.Value);
+            }
+        }
+        
         if (Equipment.Id == 0) // Create
         {
             await _objectManager.AddEquipmentItemAsync(Equipment);
