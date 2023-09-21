@@ -154,7 +154,8 @@ public class ComponentRepositoryIntegrationTest
             Id = 0,
             SerialNumber = "Test addition",
             ComponentOfId = 1,
-            TypeId = 1
+            TypeId = 1,
+            EquipmentId = 1
         });
 
         Assert.Multiple(() =>
