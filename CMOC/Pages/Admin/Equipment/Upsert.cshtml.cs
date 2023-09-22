@@ -30,14 +30,6 @@ public class Upsert : PageModel
     
     public async Task OnGet(int? id)
     {
-        SupportedServices = (await _objectManager.GetServicesAsync())
-            .Select(c => new CheckedListRow
-            {
-                Text = c.Name,
-                Value = c.Id,
-                Checked = false
-            }).ToList();
-        
         if (id is not null)
         {
             Equipment = await _objectManager
@@ -47,6 +39,14 @@ public class Upsert : PageModel
         {
             Equipment = new EquipmentDto();
         }
+        
+        SupportedServices = (await _objectManager.GetServicesAsync())
+            .Select(s => new CheckedListRow
+            {
+                Text = s.Name,
+                Value = s.Id,
+                Checked = Equipment.SupportedServices.Contains(s.Id)
+            }).ToList();
 
         EquipmentTypes = (await _objectManager.GetEquipmentTypesAsync()).Select(et => new SelectListItem
         {
