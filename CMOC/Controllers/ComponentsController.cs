@@ -31,10 +31,10 @@ public class ComponentsController : ControllerBase
             : NotFound();
     }
     
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        return await _objectManager.RemoveEquipmentItemAsync(id)
+        return await _objectManager.RemoveComponentAsync(id)
             ? Ok(new
             {
                 success = true,

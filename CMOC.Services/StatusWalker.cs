@@ -105,7 +105,9 @@ public static class StatusWalker
             return ObjectStatus.NonCapable;
         }
 
-        return equipment.Components.SelectMany(cr => cr.Components.Select(c => !c.Operational)).Any()
+        return equipment.Components
+            .SelectMany(cr => cr.Components.Select(c => c.Operational))
+            .Any(componentOperational => componentOperational == false)
             ? ObjectStatus.PartiallyCapable
             : ObjectStatus.FullyCapable;
     }

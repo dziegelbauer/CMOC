@@ -7,8 +7,9 @@ $(document).ready( function () {
             "datatype": "json"
         },
         "columns": [
-            { "data": "id", "width": "15%"},
-            { "data": "serialNumber", "width": "15%"},
+            { "data": "id", "width": "7%"},
+            { "data": "typeName", "width": "15%"},
+            { "data": "serialNumber", "width": "8%"},
             { "data": "notes", "width": "40%"},
             {
                 "data": "id",

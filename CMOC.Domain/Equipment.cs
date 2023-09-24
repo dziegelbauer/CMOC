@@ -12,6 +12,6 @@ public class Equipment
     public int? IssueId { get; set; }
     public Issue? Issue { get; set; }
     public List<ServiceSupportRelationship> Relationships { get; set; } = new List<ServiceSupportRelationship>();
-    public string Notes { get; set; } = string.Empty;
+    public string? Notes { get; set; } = string.Empty;
     public bool? OperationalOverride { get; set; }
 }
