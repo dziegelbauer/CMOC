@@ -65,9 +65,14 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
             ?? (await _db.ComponentRelationships.AddAsync(new ComponentRelationship
             {
                 EquipmentId = dto.EquipmentId,
-                FailureThreshold = 0,
+                FailureThreshold = 1,
                 TypeId = dto.TypeId
             })).Entity;
+
+        if (componentRelationship.Id != 0)
+        {
+            componentRelationship.FailureThreshold++;
+        }
 
         var component = dto.Adapt<Component>();
         component.ComponentOf = componentRelationship;
@@ -100,7 +105,8 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
         {
             if (componentRelationship.Id != component.ComponentOfId)
             {
-                component.ComponentOfId = dto.Id;
+                component.ComponentOfId = componentRelationship.Id;
+                componentRelationship.FailureThreshold++;
             }
         }
         else
@@ -108,7 +114,7 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
             var newRelationship = (await _db.ComponentRelationships.AddAsync(new ComponentRelationship
             {
                 EquipmentId = dto.EquipmentId,
-                FailureThreshold = 0,
+                FailureThreshold = 1,
                 TypeId = dto.TypeId
             })).Entity;
 
@@ -123,11 +129,42 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
             {
                 _db.ComponentRelationships.Remove(oldRelationship);
             }
+            else
+            {
+                oldRelationship.FailureThreshold--;
+            }
         }
         
         _db.Components.Update(component);
         await _db.SaveChangesAsync();
         
         return await GetAsync(c => c.Id == dto.Id) ?? throw new Exception();
+    }
+
+    public override async Task<bool> RemoveAsync(int id)
+    {
+        var component = await _db.Components.FindAsync(id);
+
+        if (component is null)
+        {
+            return false;
+        }
+
+        var componentInUse = _db.ComponentRelationships.Any(cr => cr.Id == component.ComponentOfId);
+
+        if (componentInUse)
+        {
+            var affectedRelationships = await _db.ComponentRelationships
+                .Where(cr => cr.Id == component.ComponentOfId)
+                .ToListAsync();
+
+            _db.ComponentRelationships.RemoveRange(affectedRelationships);
+        }
+
+        _db.Components.Remove(component);
+
+        await _db.SaveChangesAsync();
+        
+        return true;
     }
 }

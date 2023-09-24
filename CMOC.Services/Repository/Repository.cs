@@ -56,6 +56,15 @@ public abstract class Repository<T, TDto> : IRepository<T, TDto>
 
         return queryResult?.Adapt<TUDto>();
     }
+    
+    protected static async Task<TUDto?> DefaultGetByIdAsync<TU, TUDto>(AppDbContext db, int id) 
+        where TU : class
+        where TUDto : class?
+    {
+        var queryResult = await db.Set<TU>().FindAsync(id);
+
+        return queryResult?.Adapt<TUDto>();
+    }
 
     protected static async Task<List<TUDto>> DefaultGetManyAsync<TU, TUDto>(AppDbContext db, Expression<Func<TU, bool>>? filter = null)
         where TU : class
@@ -81,7 +90,13 @@ public abstract class Repository<T, TDto> : IRepository<T, TDto>
     {
         var entity = await db.Set<TU>().AddAsync(dto.Adapt<TU>());
         await db.SaveChangesAsync();
-        return await DefaultGetAsync<TU, TUDto>(db) ?? throw new Exception();
+        
+        var idProperty = (int)entity.Entity
+            .GetType()
+            .GetProperty("Id")!
+            .GetValue(entity.Entity,null)!;  
+        
+        return await DefaultGetByIdAsync<TU, TUDto>(db, idProperty) ?? throw new Exception();
     }
     
     protected static async Task<TUDto> DefaultUpdateAsync<TU, TUDto>(AppDbContext db, TUDto dto)

@@ -81,6 +81,9 @@ public class AppDbContext : DbContext
             .HasForeignKey(e => e.IssueId)
             .IsRequired(false);
         modelBuilder.Entity<Equipment>()
+            .Property(e => e.Notes)
+            .IsRequired(false);
+        modelBuilder.Entity<Equipment>()
             .Navigation(e => e.Type)
             .AutoInclude();
         modelBuilder.Entity<Equipment>()

@@ -118,13 +118,36 @@ public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, Equi
 
     public override async Task<bool> RemoveAsync(int id)
     {
+        var equipment = await _db.Equipment
+            .Include(e => e.Components)
+            .ThenInclude(cr => cr.Components)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (equipment is null)
+        {
+            return false;
+        }
+
+        equipment.Components.ForEach(cr =>
+        {
+            cr.Components.ForEach(c => _db.Remove(c));
+            _db.Remove(cr);
+        });
+        
         var equipmentInUse = _db.ServiceSupportRelationships.Any(ssr => ssr.EquipmentId == id);
 
         if (equipmentInUse)
         {
-            return false;
+            var affectedRelationships = await _db.ServiceSupportRelationships
+                .Where(ssr => ssr.EquipmentId == id)
+                .ToListAsync();
+
+            _db.ServiceSupportRelationships.RemoveRange(affectedRelationships);
         }
+
+        _db.Remove(equipment);
+        await _db.SaveChangesAsync();
         
-        return await DefaultRemoveAsync<Equipment>(_db, id);
+        return true;
     }
 }
