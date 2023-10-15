@@ -3,8 +3,6 @@ using CMOC.Data;
 using CMOC.Domain;
 using CMOC.Services.Dto;
 using CMOC.Services.Repository;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Services;
 

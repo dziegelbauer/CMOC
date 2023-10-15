@@ -9,7 +9,7 @@ public class ObjectManagerIntegrationTest
     [OneTimeSetUp]
     public void EnvironmentSetup()
     {
-        MapsterConfig.RegisterMapsterConfiguration();
+        
     }
     
     [SetUp]

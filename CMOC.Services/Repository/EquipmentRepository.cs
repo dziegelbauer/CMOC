@@ -2,18 +2,18 @@
 using CMOC.Data;
 using CMOC.Domain;
 using CMOC.Services.Dto;
-using Mapster;
+using CMOC.Services.Utility;
 using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Services.Repository;
 
-public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, EquipmentType, EquipmentTypeDto>, IEquipmentRepository
+public class EquipmentRepository : Repository, IEquipmentRepository
 {
     public EquipmentRepository(AppDbContext db) : base(db)
     {
     }
 
-    public override async Task<EquipmentDto?> GetAsync(Expression<Func<Equipment, bool>>? filter = null)
+    public async Task<EquipmentDto?> GetAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
         var query = _db.Equipment.AsNoTracking().AsQueryable();
 
@@ -22,20 +22,30 @@ public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, Equi
             query = query.Where(filter);
         }
 
-        query = query
-            .Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.Relationships)
-            .ThenInclude(ssr => ssr.Service)
-            .Include(e => e.Components)
-            .ThenInclude(cr => cr.Components);
+        query = MapJoins(query);
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.Adapt<EquipmentDto>();
+        return queryResult?.ToDto();
     }
 
-    public override async Task<List<EquipmentDto>> GetManyAsync(Expression<Func<Equipment, bool>>? filter = null)
+    private static IQueryable<Equipment> MapJoins(IQueryable<Equipment> query)
+    {
+        return query
+            .Include(e => e.Type)
+            .Include(e => e.Issue)
+            .Include(e => e.Location)
+            .Include(e => e.Relationships)
+            .ThenInclude(ssr => ssr.Service)
+            .Include(e => e.Components)
+            .ThenInclude(cr => cr.Components)
+            .ThenInclude(c => c.Issue)
+            .Include(e => e.Components)
+            .ThenInclude(cr => cr.Components)
+            .ThenInclude(c => c.Type);
+    }
+
+    public async Task<List<EquipmentDto>> GetManyAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
         var query = _db.Equipment.AsNoTracking().AsQueryable();
 
@@ -44,23 +54,17 @@ public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, Equi
             query = query.Where(filter);
         }
 
-        query = query
-            .Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.Relationships)
-            .ThenInclude(ssr => ssr.Service)
-            .Include(e => e.Components)
-            .ThenInclude(cr => cr.Components);
+        query = MapJoins(query);
 
         var queryResult = await query.ToListAsync();
         return queryResult
-            .Select(e => e.Adapt<EquipmentDto>())
+            .Select(e => e.ToDto())
             .ToList();
     }
 
-    public override async Task<EquipmentDto> AddAsync(EquipmentDto dto)
+    public async Task<EquipmentDto> AddAsync(EquipmentDto dto)
     {
-        var equipment = await _db.Equipment.AddAsync(dto.Adapt<Equipment>());
+        var equipment = await _db.Equipment.AddAsync(dto.ToEntity());
 
         await _db.SaveChangesAsync();
 
@@ -81,9 +85,9 @@ public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, Equi
         return await GetAsync(e => e.Id == equipment.Entity.Id) ?? throw new Exception();
     }
 
-    public override async Task<EquipmentDto> UpdateAsync(EquipmentDto dto)
+    public async Task<EquipmentDto> UpdateAsync(EquipmentDto dto)
     {
-        var equipment = _db.Equipment.Update(dto.Adapt<Equipment>());
+        var equipment = _db.Equipment.Update(dto.ToEntity());
 
         var supportRelationships =
             await _db.ServiceSupportRelationships
@@ -116,7 +120,7 @@ public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, Equi
         return await GetAsync(e => e.Id == dto.Id) ?? throw new Exception();
     }
 
-    public override async Task<bool> RemoveAsync(int id)
+    public async Task<bool> RemoveAsync(int id)
     {
         var equipment = await _db.Equipment
             .Include(e => e.Components)
@@ -149,5 +153,61 @@ public class EquipmentRepository : AssetRepository<Equipment, EquipmentDto, Equi
         await _db.SaveChangesAsync();
         
         return true;
+    }
+
+    public async Task<EquipmentTypeDto?> GetTypeAsync(Expression<Func<EquipmentType, bool>>? filter = null)
+    {
+        var query = _db.EquipmentTypes.AsNoTracking().AsQueryable();
+
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+        var queryResult = await query.FirstOrDefaultAsync();
+
+        return queryResult?.ToDto();
+    }
+
+    public async Task<List<EquipmentTypeDto>> GetTypesAsync(Expression<Func<EquipmentType, bool>>? filter = null)
+    {
+        var query = _db.EquipmentTypes.AsNoTracking().AsQueryable();
+
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+        var queryResult = await query.ToListAsync();
+
+        return queryResult
+            .Select(et => et.ToDto())
+            .ToList();
+    }
+
+    public async Task<EquipmentTypeDto> AddTypeAsync(EquipmentTypeDto dto)
+    {
+        var newEquipmentType = await _db.EquipmentTypes.AddAsync(dto.ToEntity());
+        await _db.SaveChangesAsync();
+        return await GetTypeAsync(et => et.Id == newEquipmentType.Entity.Id) ?? throw new Exception();
+    }
+
+    public async Task<EquipmentTypeDto> UpdateTypeAsync(EquipmentTypeDto dto)
+    {
+        var updatedEquipmentType = _db.EquipmentTypes.Update(dto.ToEntity());
+        await _db.SaveChangesAsync();
+        return await GetTypeAsync(ct => ct.Id == updatedEquipmentType.Entity.Id) ?? throw new Exception();
+    }
+
+    public async Task<bool> RemoveTypeAsync(int id)
+    {
+        var typeInUse = _db.Equipment.Any(c => c.TypeId == id);
+
+        if (typeInUse)
+        {
+            return false;
+        }
+
+        return await DefaultRemoveAsync<EquipmentType>(_db, id);
     }
 }

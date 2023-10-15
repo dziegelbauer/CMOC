@@ -2,18 +2,18 @@
 using CMOC.Data;
 using CMOC.Domain;
 using CMOC.Services.Dto;
-using Mapster;
+using CMOC.Services.Utility;
 using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Services.Repository;
 
-public class ComponentRepository : AssetRepository<Component, ComponentDto, ComponentType, ComponentTypeDto>, IComponentRepository
+public class ComponentRepository : Repository, IComponentRepository
 {
     public ComponentRepository(AppDbContext db) : base(db)
     {
     }
 
-    public override async Task<ComponentDto?> GetAsync(Expression<Func<Component, bool>>? filter = null)
+    public async Task<ComponentDto?> GetAsync(Expression<Func<Component, bool>>? filter = null)
     {
         var query = _db.Components.AsNoTracking().AsQueryable();
 
@@ -22,19 +22,25 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
             query = query.Where(filter);
         }
 
-        query = query
-            .Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.ComponentOf)
-            .ThenInclude(cr => cr.Equipment)
-            .ThenInclude(e => e.Type);
+        query = MapJoins(query);
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.Adapt<ComponentDto>();
+        return queryResult?.ToDto();
     }
 
-    public override async Task<List<ComponentDto>> GetManyAsync(Expression<Func<Component, bool>>? filter = null)
+    private static IQueryable<Component> MapJoins(IQueryable<Component> query)
+    {
+        query = query
+            .Include(e => e.Type)
+            .Include(e => e.Issue)
+            .Include(e => e.ComponentOf)
+            .ThenInclude(cr => cr.Equipment)
+            .ThenInclude(e => e.Type);
+        return query;
+    }
+
+    public async Task<List<ComponentDto>> GetManyAsync(Expression<Func<Component, bool>>? filter = null)
     {
         var query = _db.Components.AsNoTracking().AsQueryable();
 
@@ -43,21 +49,16 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
             query = query.Where(filter);
         }
 
-        query = query
-            .Include(e => e.Type)
-            .Include(e => e.Issue)
-            .Include(e => e.ComponentOf)
-            .ThenInclude(cr => cr.Equipment)
-            .ThenInclude(e => e.Type);
+        query = MapJoins(query);
 
         var queryResult = await query.ToListAsync();
 
         return queryResult
-            .Select(c => c.Adapt<ComponentDto>())
+            .Select(c => c.ToDto())
             .ToList();
     }
 
-    public override async Task<ComponentDto> AddAsync(ComponentDto dto)
+    public async Task<ComponentDto> AddAsync(ComponentDto dto)
     {
         var componentRelationship =
             await _db.ComponentRelationships.FirstOrDefaultAsync(cr =>
@@ -74,14 +75,14 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
             componentRelationship.FailureThreshold++;
         }
 
-        var component = dto.Adapt<Component>();
+        var component = dto.ToEntity();
         component.ComponentOf = componentRelationship;
         await _db.Components.AddAsync(component);
         await _db.SaveChangesAsync();
         return await GetAsync(c => c.Id == component.Id) ?? throw new Exception();
     }
 
-    public override async Task<ComponentDto> UpdateAsync(ComponentDto dto)
+    public async Task<ComponentDto> UpdateAsync(ComponentDto dto)
     {
         var component = await _db.Components.FindAsync(dto.Id);
 
@@ -141,7 +142,7 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
         return await GetAsync(c => c.Id == dto.Id) ?? throw new Exception();
     }
 
-    public override async Task<bool> RemoveAsync(int id)
+    public async Task<bool> RemoveAsync(int id)
     {
         var component = await _db.Components.FindAsync(id);
 
@@ -166,5 +167,61 @@ public class ComponentRepository : AssetRepository<Component, ComponentDto, Comp
         await _db.SaveChangesAsync();
         
         return true;
+    }
+
+    public async Task<ComponentTypeDto?> GetTypeAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    {
+        var query = _db.ComponentTypes.AsNoTracking().AsQueryable();
+
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+        var queryResult = await query.FirstOrDefaultAsync();
+
+        return queryResult?.ToDto();
+    }
+
+    public async Task<List<ComponentTypeDto>> GetTypesAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    {
+        var query = _db.ComponentTypes.AsNoTracking().AsQueryable();
+
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+        var queryResult = await query.ToListAsync();
+
+        return queryResult
+            .Select(ct => ct.ToDto())
+            .ToList();
+    }
+
+    public async Task<ComponentTypeDto> AddTypeAsync(ComponentTypeDto dto)
+    {
+        var newComponentType = await _db.ComponentTypes.AddAsync(dto.ToEntity());
+        await _db.SaveChangesAsync();
+        return await GetTypeAsync(ct => ct.Id == newComponentType.Entity.Id) ?? throw new Exception();
+    }
+
+    public async Task<ComponentTypeDto> UpdateTypeAsync(ComponentTypeDto dto)
+    {
+        var updatedComponentType = _db.ComponentTypes.Update(dto.ToEntity());
+        await _db.SaveChangesAsync();
+        return await GetTypeAsync(ct => ct.Id == updatedComponentType.Entity.Id) ?? throw new Exception();
+    }
+
+    public async Task<bool> RemoveTypeAsync(int id)
+    {
+        var typeInUse = _db.Components.Any(c => c.TypeId == id);
+
+        if (typeInUse)
+        {
+            return false;
+        }
+
+        return await DefaultRemoveAsync<ComponentType>(_db, id);
     }
 }

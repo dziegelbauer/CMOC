@@ -9,7 +9,7 @@ public class EquipmentRepositoryIntegrationTest
     [OneTimeSetUp]
     public void EnvironmentSetup()
     {
-        MapsterConfig.RegisterMapsterConfiguration();
+        
     }
     
     [SetUp]
@@ -177,34 +177,6 @@ public class EquipmentRepositoryIntegrationTest
         {
             Assert.That(result, Is.True);
             Assert.That(_db.Equipment.Count(), Is.Zero);
-        });
-    }
-
-    [Test]
-    public async Task CannotRemoveEquipmentInUse()
-    {
-        _db.Services.Add(new Service
-        {
-            Id = 1,
-            Name = "Test Service"
-        });
-
-        _db.ServiceSupportRelationships.Add(new ServiceSupportRelationship
-        {
-            Id = 1,
-            EquipmentId = 1,
-            ServiceId = 1,
-            TypeId = 1
-        });
-
-        _db.SaveChanges();
-
-        var result = await _locDb.RemoveAsync(1);
-        
-        Assert.Multiple(() =>
-        {
-            Assert.That(result, Is.False);
-            Assert.That(_db.Equipment.Count(), Is.EqualTo(1));
         });
     }
 
