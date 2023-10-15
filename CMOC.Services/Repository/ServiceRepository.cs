@@ -2,18 +2,18 @@
 using CMOC.Data;
 using CMOC.Domain;
 using CMOC.Services.Dto;
-using Mapster;
+using CMOC.Services.Utility;
 using Microsoft.EntityFrameworkCore;
 
 namespace CMOC.Services.Repository;
 
-public class ServiceRepository : Repository<Service, ServiceDto>, IServiceRepository
+public class ServiceRepository : Repository, IServiceRepository
 {
     public ServiceRepository(AppDbContext db) : base(db)
     {
     }
 
-    public override async Task<ServiceDto?> GetAsync(Expression<Func<Service, bool>>? filter = null)
+    public async Task<ServiceDto?> GetAsync(Expression<Func<Service, bool>>? filter = null)
     {
         var query = _db.Services.AsNoTracking().AsQueryable();
 
@@ -22,20 +22,14 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
             query = query.Where(filter);
         }
 
-        query = query
-            .Include(s => s.SupportedBy)
-            .ThenInclude(ssr => ssr.Equipment)
-            .ThenInclude(e => e.Components)
-            .ThenInclude(cr => cr.Components)
-            .Include(s => s.Supports)
-            .ThenInclude(csr => csr.Capability);
+        query = MapJoins(query);
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.Adapt<ServiceDto>();
+        return queryResult?.ToDto();
     }
 
-    public override async Task<List<ServiceDto>> GetManyAsync(Expression<Func<Service, bool>>? filter = null)
+    public async Task<List<ServiceDto>> GetManyAsync(Expression<Func<Service, bool>>? filter = null)
     {
         var query = _db.Services.AsNoTracking().AsQueryable();
 
@@ -44,29 +38,34 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
             query = query.Where(filter);
         }
 
-        query = query
-            .Include(s => s.SupportedBy)
-            .ThenInclude(ssr => ssr.Equipment)
-            .ThenInclude(e => e.Components)
-            .ThenInclude(cr => cr.Components)
-            .Include(s => s.Supports)
-            .ThenInclude(csr => csr.Capability);
+        query = MapJoins(query);
 
         var queryResult = await query.ToListAsync();
 
         return queryResult
             .Select(s =>
             {
-                var dto = s.Adapt<ServiceDto>();
+                var dto = s.ToDto();
                 dto.Status = s.ParseStatusGraph();
                 return dto;
             })
             .ToList();
     }
 
-    public override async Task<ServiceDto> AddAsync(ServiceDto dto)
+    private static IQueryable<Service> MapJoins(IQueryable<Service> query)
     {
-        var service = await _db.Services.AddAsync(dto.Adapt<Service>());
+        return query
+            .Include(s => s.SupportedBy)
+            .ThenInclude(ssr => ssr.Equipment)
+            .ThenInclude(e => e.Components)
+            .ThenInclude(cr => cr.Components)
+            .Include(s => s.Supports)
+            .ThenInclude(csr => csr.Capability);
+    }
+
+    public async Task<ServiceDto> AddAsync(ServiceDto dto)
+    {
+        var service = await _db.Services.AddAsync(dto.ToEntity());
 
         await _db.SaveChangesAsync();
 
@@ -84,9 +83,9 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
         return await GetAsync(s => s.Id == service.Entity.Id) ?? throw new Exception();
     }
 
-    public override async Task<ServiceDto> UpdateAsync(ServiceDto dto)
+    public async Task<ServiceDto> UpdateAsync(ServiceDto dto)
     {
-        var service = _db.Services.Update(dto.Adapt<Service>());
+        var service = _db.Services.Update(dto.ToEntity());
 
         var supportRelationships =
             await _db.CapabilitySupportRelationships
@@ -118,7 +117,7 @@ public class ServiceRepository : Repository<Service, ServiceDto>, IServiceReposi
         return await GetAsync(s => s.Id == service.Entity.Id) ?? throw new Exception();
     }
 
-    public override async Task<bool> RemoveAsync(int id)
+    public async Task<bool> RemoveAsync(int id)
     {
         var serviceInUse = _db.ServiceSupportRelationships.Any(ssr => ssr.ServiceId == id)
                            || _db.CapabilitySupportRelationships.Any(csr => csr.ServiceId == id);

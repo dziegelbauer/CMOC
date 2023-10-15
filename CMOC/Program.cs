@@ -1,6 +1,5 @@
 using CMOC.Data;
 using CMOC.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +9,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=cmoc.db").EnableSensitiveDataLogging();
 });
 
-builder.Services.RegisterMapsterConfiguration();
 builder.Services.RegisterBusinessServices();
 
 builder.Services.AddRazorPages();

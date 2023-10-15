@@ -1,13 +1,8 @@
-﻿using System.Linq.Expressions;
-using CMOC.Data;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
+﻿using CMOC.Data;
 
 namespace CMOC.Services.Repository;
 
-public abstract class Repository<T, TDto> : IRepository<T, TDto> 
-    where T : class
-    where TDto : class
+public abstract class Repository
 {
     protected readonly AppDbContext _db;
 
@@ -16,102 +11,10 @@ public abstract class Repository<T, TDto> : IRepository<T, TDto>
         _db = db;
     }
 
-    public virtual async Task<TDto?> GetAsync(Expression<Func<T, bool>>? filter = null)
+    protected static async Task<bool> DefaultRemoveAsync<T>(AppDbContext db, int id)
+        where T : class
     {
-        return await DefaultGetAsync<T, TDto>(_db, filter);
-    }
-
-    public virtual async Task<List<TDto>> GetManyAsync(Expression<Func<T, bool>>? filter = null)
-    {
-        return await DefaultGetManyAsync<T, TDto>(_db, filter);
-    }
-    
-    public virtual async Task<TDto> AddAsync(TDto dto)
-    {
-        return await DefaultAddAsync<T, TDto>(_db, dto);
-    }
-
-    public virtual async Task<TDto> UpdateAsync(TDto dto)
-    {
-        return await DefaultUpdateAsync<T, TDto>(_db, dto);
-    }
-    
-    public virtual async Task<bool> RemoveAsync(int id)
-    {
-        return await DefaultRemoveAsync<T>(_db, id);
-    }
-
-    protected static async Task<TUDto?> DefaultGetAsync<TU, TUDto>(AppDbContext db, Expression<Func<TU, bool>>? filter = null) 
-        where TU : class
-        where TUDto : class?
-    {
-        var query = db.Set<TU>().AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.FirstOrDefaultAsync();
-
-        return queryResult?.Adapt<TUDto>();
-    }
-    
-    protected static async Task<TUDto?> DefaultGetByIdAsync<TU, TUDto>(AppDbContext db, int id) 
-        where TU : class
-        where TUDto : class?
-    {
-        var queryResult = await db.Set<TU>().FindAsync(id);
-
-        return queryResult?.Adapt<TUDto>();
-    }
-
-    protected static async Task<List<TUDto>> DefaultGetManyAsync<TU, TUDto>(AppDbContext db, Expression<Func<TU, bool>>? filter = null)
-        where TU : class
-        where TUDto : class
-    {
-        var query = db.Set<TU>().AsNoTracking().AsQueryable();
-
-        if (filter is not null)
-        {
-            query = query.Where(filter);
-        }
-
-        var queryResult = await query.ToListAsync();
-
-        return queryResult
-            .Select(t => t.Adapt<TUDto>())
-            .ToList();
-    }
-
-    protected static async Task<TUDto> DefaultAddAsync<TU, TUDto>(AppDbContext db, TUDto dto)
-        where TU : class
-        where TUDto : class
-    {
-        var entity = await db.Set<TU>().AddAsync(dto.Adapt<TU>());
-        await db.SaveChangesAsync();
-        
-        var idProperty = (int)entity.Entity
-            .GetType()
-            .GetProperty("Id")!
-            .GetValue(entity.Entity,null)!;  
-        
-        return await DefaultGetByIdAsync<TU, TUDto>(db, idProperty) ?? throw new Exception();
-    }
-    
-    protected static async Task<TUDto> DefaultUpdateAsync<TU, TUDto>(AppDbContext db, TUDto dto)
-        where TU : class
-        where TUDto : class
-    {
-        var entity = db.Set<TU>().Update(dto.Adapt<TU>());
-        await db.SaveChangesAsync();
-        return await DefaultGetAsync<TU, TUDto>(db) ?? throw new Exception();
-    }
-
-    protected static async Task<bool> DefaultRemoveAsync<TU>(AppDbContext db, int id)
-        where TU : class
-    {
-        var objFromDb = await db.Set<TU>().FindAsync(id);
+        var objFromDb = await db.Set<T>().FindAsync(id);
 
         if (objFromDb is null)
         {
