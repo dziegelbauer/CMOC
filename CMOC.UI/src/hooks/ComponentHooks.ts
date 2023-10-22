@@ -22,7 +22,7 @@ const useFetchComponents = () => {
 const useFetchComponentTypes = () => {
     return useQuery<ComponentType[], AxiosError<Problem>>("componentTypes", () =>
         axios
-            .get(`${import.meta.env.VITE_BASE_API_URL}/api/v1/ComponentType`)
+            .get(`${import.meta.env.VITE_BASE_API_URL}api/v1/ComponentType`)
             .then(resp => resp.data.payload));
 }
 

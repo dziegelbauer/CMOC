@@ -9,14 +9,14 @@ import {EquipmentType} from "../types/EquipmentType.ts";
 const useFetchEquipmentItem = (id: number) => {
     return useQuery<Equipment, AxiosError<Problem>>(["equipment", id], () =>
         axios
-            .get(`${import.meta.env.VITE_BASE_API_URL}/api/v1/Equipment/${id}`)
+            .get(`${import.meta.env.VITE_BASE_API_URL}api/v1/Equipment/${id}`)
             .then(resp => resp.data.payload));
 }
 
 const useFetchEquipment = () => {
     return useQuery<Equipment[], AxiosError<Problem>>("equipment", () =>
         axios
-            .get(`${import.meta.env.VITE_BASE_API_URL}/api/v1/Equipment`)
+            .get(`${import.meta.env.VITE_BASE_API_URL}api/v1/Equipment`)
             .then(resp => resp.data.payload));
 }
 
