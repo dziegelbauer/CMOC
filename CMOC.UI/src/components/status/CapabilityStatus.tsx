@@ -1,6 +1,7 @@
 import {useFetchCapabilities} from "../../hooks/CapabilityHooks.ts";
 import StatusCard from "./StatusCard.tsx";
 import ApiStatus from "../ApiStatus.tsx";
+import {Capability} from "../../types/Capability.ts";
 
 const CapabilityStatus = () => {
     const { data, status, isSuccess } = useFetchCapabilities();
@@ -15,7 +16,7 @@ const CapabilityStatus = () => {
             <hr/>
             <div className="row row-cols-1 row-cols-md-4 g-4">
                 {!isSuccess && <ApiStatus status={status}/>}
-                {isSuccess && data.map(c => {
+                {isSuccess && data.map((c: Capability) => {
                     return (
                         <StatusCard 
                             status={c.status} 

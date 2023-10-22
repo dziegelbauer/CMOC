@@ -3,6 +3,7 @@ import {useParams} from "react-router-dom";
 import ApiStatus from "../ApiStatus.tsx";
 import StatusCard from "./StatusCard.tsx";
 import {useFetchEquipment} from "../../hooks/EquipmentHooks.ts";
+import {Equipment} from "../../types/Equipment.ts";
 
 const EquipmentStatus = () => {
     const { data, status, isSuccess } = useFetchEquipment();
@@ -27,7 +28,7 @@ const EquipmentStatus = () => {
             <hr/>
             <div className="row row-cols-1 row-cols-md-4 g-4">
                 {!isSuccess && <ApiStatus status={status}/>}
-                {isSuccess && data.map(e => {
+                {isSuccess && data.map((e: Equipment) => {
                     return (
                         <StatusCard
                             status={e.status}

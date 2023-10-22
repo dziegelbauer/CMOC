@@ -21,7 +21,7 @@ const useFetchCapabilities = () => {
 const useAddCapability = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
-    return useMutation<AxiosResponse, AxiosError<Problem>, Capability>((c) =>
+    return useMutation<AxiosResponse, AxiosError<Problem>, Capability>((c: Capability) =>
             axios.post(`http://localhost:5222/api/v1/Capabilities`, c), {
             onSuccess: () => {
                 queryClient.invalidateQueries("capabilities");
@@ -34,7 +34,7 @@ const useAddCapability = () => {
 const useUpdateCapability = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
-    return useMutation<AxiosResponse, AxiosError<Problem>, Capability>((c) =>
+    return useMutation<AxiosResponse, AxiosError<Problem>, Capability>((c: Capability) =>
             axios.put(`http://localhost:5222/api/v1/Capabilities`, c), {
             onSuccess: (_, __) => {
                 queryClient.invalidateQueries("capabilities");
@@ -47,7 +47,7 @@ const useUpdateCapability = () => {
 const useDeleteCapability = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
-    return useMutation<AxiosResponse, AxiosError, Capability>((c) =>
+    return useMutation<AxiosResponse, AxiosError, Capability>((c: Capability) =>
             axios.delete(`http://localhost:5222/api/v1/Capabilities/${c.id}`), {
             onSuccess: () => {
                 queryClient.invalidateQueries("capabilities");

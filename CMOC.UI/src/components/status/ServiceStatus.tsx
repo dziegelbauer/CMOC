@@ -3,6 +3,7 @@ import {useParams} from "react-router-dom";
 import ApiStatus from "../ApiStatus.tsx";
 import StatusCard from "./StatusCard.tsx";
 import {useFetchCapability} from "../../hooks/CapabilityHooks.ts";
+import {Service} from "../../types/Service.ts";
 
 const ServiceStatus = () => {
     const { data, status, isSuccess } = useFetchServices();
@@ -21,20 +22,20 @@ const ServiceStatus = () => {
             <div className="row">
                 <div className="col-12">
                     {id && capabilityResponse.isSuccess && <h2>Services Supporting {capabilityResponse.data.name}</h2>}
-                    {!id && <h2>All Services</h2>}
+                    {!id && <h2>All Services</h2>}  
                 </div>
             </div>
             <hr/>
             <div className="row row-cols-1 row-cols-md-4 g-4">
                 {!isSuccess && <ApiStatus status={status}/>}
-                {isSuccess && data.map(c => {
+                {isSuccess && data.map((s: Service) => {
                     return (
                         <StatusCard
-                            status={c.status}
-                            title={c.name}
-                            id={c.id}
+                            status={s.status}
+                            title={s.name}
+                            id={s.id}
                             drillDownPath="/status/equipment/supporting"
-                            key={c.id}
+                            key={s.id}
                         />
                     )
                 })}

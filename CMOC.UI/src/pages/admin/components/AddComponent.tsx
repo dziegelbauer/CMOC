@@ -12,7 +12,7 @@ const AddComponent = () => {
         componentOfId: 0,
         typeName: "",
         equipment: "",
-        issueDto: null,
+        issue: null,
         issueId: null,
         serialNumber: "",
         typeId: 0,
