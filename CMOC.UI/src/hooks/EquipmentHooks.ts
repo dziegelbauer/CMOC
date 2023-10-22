@@ -42,7 +42,7 @@ const useAddEquipment = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
     return useMutation<AxiosResponse, AxiosError<Problem>, Equipment>((c) =>
-            axios.post(`${import.meta.env.VITE_BASE_API_URL}/api/v1/Equipment`, c), {
+            axios.post(`${import.meta.env.VITE_BASE_API_URL}api/v1/Equipment`, c), {
             onSuccess: () => {
                 queryClient.invalidateQueries("equipment");
                 nav('/admin/equipment');
@@ -55,7 +55,7 @@ const useUpdateEquipment = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
     return useMutation<AxiosResponse, AxiosError<Problem>, Equipment>((c) =>
-            axios.put(`${import.meta.env.VITE_BASE_API_URL}/api/v1/Equipment`, c), {
+            axios.put(`${import.meta.env.VITE_BASE_API_URL}api/v1/Equipment`, c), {
             onSuccess: (_, __) => {
                 queryClient.invalidateQueries("equipment");
                 nav(`/admin/equipment`);
@@ -68,7 +68,7 @@ const useDeleteEquipment = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
     return useMutation<AxiosResponse, AxiosError, Equipment>((e) =>
-            axios.delete(`${import.meta.env.VITE_BASE_API_URL}/api/v1/Equipment/${e.id}`), {
+            axios.delete(`${import.meta.env.VITE_BASE_API_URL}api/v1/Equipment/${e.id}`), {
             onSuccess: () => {
                 queryClient.invalidateQueries("equipment");
                 nav('/admin/equipment')

@@ -42,7 +42,7 @@ const useAddComponent = () => {
 const useAddComponentType = () => {
     const queryClient = useQueryClient();
     return useMutation<AxiosResponse, AxiosError<Problem>, ComponentType>((ct) =>
-        axios.post(`${import.meta.env.VITE_BASE_API_URL}/api/v1/ComponentType`, ct), {
+        axios.post(`${import.meta.env.VITE_BASE_API_URL}api/v1/ComponentType`, ct), {
         onSuccess: () => {
             queryClient.invalidateQueries("componentTypes");
         }
@@ -54,7 +54,7 @@ const useUpdateComponent = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
     return useMutation<AxiosResponse, AxiosError<Problem>, Component>((c) =>
-            axios.put(`${import.meta.env.VITE_BASE_API_URL}/api/v1/Components`, c), {
+            axios.put(`${import.meta.env.VITE_BASE_API_URL}api/v1/Components`, c), {
             onSuccess: (_, __) => {
                 queryClient.invalidateQueries("components");
                 nav(`/admin/components`);
@@ -67,7 +67,7 @@ const useDeleteComponent = () => {
     const nav = useNavigate();
     const queryClient = useQueryClient();
     return useMutation<AxiosResponse, AxiosError, Component>((c) =>
-            axios.delete(`${import.meta.env.VITE_BASE_API_URL}/api/v1/Components/${c.id}`), {
+            axios.delete(`${import.meta.env.VITE_BASE_API_URL}api/v1/Components/${c.id}`), {
             onSuccess: () => {
                 queryClient.invalidateQueries("components");
                 nav('/admin/component')
