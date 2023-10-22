@@ -17,40 +17,80 @@ public class EquipmentTypeController : ControllerBase
     }
 
     [HttpGet]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get()
     {
         var equipmentTypeList = await _objectManager.GetEquipmentTypesAsync();
-        return Ok(new { data = equipmentTypeList });
+        return Ok(equipmentTypeList);
     }
     
     [HttpGet("{id:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int id)
     {
         var equipmentType = await _objectManager.GetEquipmentTypeAsync(et => et.Id == id);
-        return equipmentType is not null
-        ? Ok(new { data = equipmentType })
-        : NotFound();
+        return equipmentType.Result switch
+        {
+            ServiceResult.Success => Ok(new { data = equipmentType }),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
 
     [HttpPost]
     [Consumes(MediaTypeNames.Application.Json)]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Post([FromBody] EquipmentTypeDto dto)
     {
         var equipmentType = await _objectManager.AddEquipmentTypeAsync(dto);
-        return equipmentType.Id != 0
-            ? StatusCode(StatusCodes.Status201Created, equipmentType)
-            : BadRequest();
+        return equipmentType.Result switch
+        {
+            ServiceResult.Success => Ok(equipmentType),
+            _ => BadRequest()
+        };
+    }
+    
+    [HttpPut]
+    [Consumes(MediaTypeNames.Application.Json)]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Put([FromBody] EquipmentTypeDto dto)
+    {
+        if (dto.Id == 0) return BadRequest();
+        var equipmentType = await _objectManager.UpdateEquipmentTypeAsync(dto);
+        return equipmentType.Result switch
+        {
+            ServiceResult.Success => Ok(equipmentType),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
     
     [HttpDelete("{id:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        return await _objectManager.RemoveEquipmentTypeAsync(id)
-            ? Ok(new
+        var response = await _objectManager.RemoveEquipmentTypeAsync(id);
+        return response.Result switch
+        {
+            ServiceResult.Success => Ok(new
             {
                 success = true,
                 message = $"Equipment type with id: {id} deleted."
-            })
-            : NotFound();
+            }),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
 }

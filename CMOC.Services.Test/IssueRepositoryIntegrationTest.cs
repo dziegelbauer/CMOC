@@ -42,8 +42,8 @@ public class IssueRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(() => existingIssue != null);
-            Assert.That(() => existingIssue?.Id == 1);
+            Assert.That(existingIssue.Payload, Is.Not.Null);
+            Assert.That(existingIssue.Payload?.Id, Is.EqualTo(1));
         });
     }
 
@@ -68,11 +68,11 @@ public class IssueRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _issueDb.GetManyAsync();
         
-        Assert.That(results, Has.Count.EqualTo(3));
+        Assert.That(results.Payload, Has.Count.EqualTo(3));
     }
     
     [Test]
@@ -96,14 +96,14 @@ public class IssueRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _issueDb.GetManyAsync(i => i.Notes != "Another Issue");
         
         Assert.Multiple(() =>
         {
-            Assert.That(results, Has.Count.EqualTo(2));
-            Assert.That(results.FirstOrDefault(i => i.Notes == "Another Issue"), Is.Null);
+            Assert.That(results.Payload, Has.Count.EqualTo(2));
+            Assert.That(results.Payload?.FirstOrDefault(i => i.Notes == "Another Issue"), Is.Null);
         });
     }
 
@@ -124,7 +124,7 @@ public class IssueRepositoryIntegrationTest
         {
             Assert.That(_db.Issues.Count(),Is.EqualTo(2));
             Assert.That(_db.Issues.FirstOrDefault(i => i.Notes == "Another Issue"), Is.Not.Null);
-            Assert.That(newIssue.Id, Is.Not.Zero);
+            Assert.That(newIssue.Payload?.Id, Is.Not.Zero);
         });
     }
 
@@ -141,8 +141,8 @@ public class IssueRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(updatedIssue.Id, Is.EqualTo(1));
-            Assert.That(updatedIssue.Notes, Is.EqualTo("An Old Issue"));
+            Assert.That(updatedIssue.Payload?.Id, Is.EqualTo(1));
+            Assert.That(updatedIssue.Payload?.Notes, Is.EqualTo("An Old Issue"));
             Assert.That(_db.Issues.Count(), Is.EqualTo(1));
             Assert.That(_db.Issues.FirstOrDefault(i => i.Notes == "An Old Issue"), Is.Not.Null);
         });
@@ -155,7 +155,7 @@ public class IssueRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.True);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.Success));
             Assert.That(_db.Issues.Count(), Is.Zero);
         });
     }
@@ -211,15 +211,15 @@ public class IssueRepositoryIntegrationTest
             IssueId = 2
         }).Entity;
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var result = await _issueDb.RemoveAsync(1);
         var result2 = await _issueDb.RemoveAsync(2);
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.True);
-            Assert.That(result2, Is.True);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.Success));
+            Assert.That(result2.Result, Is.EqualTo(ServiceResult.Success));
             Assert.That(_db.Issues.Count(), Is.EqualTo(0));
             Assert.That(usingComponent.IssueId, Is.Null);
             Assert.That(usingEquipment.IssueId, Is.Null);
@@ -227,13 +227,13 @@ public class IssueRepositoryIntegrationTest
     }
 
     [Test]
-    public async Task RemoveNonExistingIssueIsFalse()
+    public async Task RemoveNonExistingIssueIsUnsuccessful()
     {
         var result = await _issueDb.RemoveAsync(2);
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
+            Assert.That(result.Result, Is.Not.EqualTo(ServiceResult.Success));
             Assert.That(_db.Issues.Count(), Is.EqualTo(1));
         });
     }

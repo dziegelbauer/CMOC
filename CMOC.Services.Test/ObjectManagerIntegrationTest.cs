@@ -94,7 +94,7 @@ public class ObjectManagerIntegrationTest
         Assert.Multiple(() =>
         {
             Assert.That(equipment, Is.Not.Null);
-            Assert.That(equipment!.IssueId, Is.EqualTo(1));
+            Assert.That(equipment.Payload?.IssueId, Is.EqualTo(1));
         });
     }
     
@@ -106,7 +106,7 @@ public class ObjectManagerIntegrationTest
         Assert.Multiple(() =>
         {
             Assert.That(component, Is.Not.Null);
-            Assert.That(component!.IssueId, Is.EqualTo(1));
+            Assert.That(component.Payload?.IssueId, Is.EqualTo(1));
         });
     }
     

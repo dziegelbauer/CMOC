@@ -1,4 +1,6 @@
+using System.Net.Mime;
 using CMOC.Services;
+using CMOC.Services.Dto;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CMOC.Controllers;
@@ -15,31 +17,95 @@ public class ComponentsController : ControllerBase
     }
 
     [HttpGet]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get()
     {
         var componentsList = await _objectManager.GetComponentsAsync();
-        return Ok(new { data = componentsList });
+        return Ok(componentsList);
+    }
+    
+    [HttpGet("{id:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Get([FromRoute] int id)
+    {
+        if (id == 0) return Ok();
+        var component = await _objectManager.GetComponentAsync(c => c.Id == id);
+        return component.Result switch
+        {
+            ServiceResult.Success => Ok(component),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
+    }
+    
+    [HttpPost]
+    [Consumes(MediaTypeNames.Application.Json)]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Post([FromBody] ComponentDto dto)
+    {
+        if (dto.Id != 0) return BadRequest();
+        var component = await _objectManager.AddComponentAsync(dto);
+        return Ok(component);
     }
     
     [HttpPost("{id:int}/Issue/{issueId:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PostIssue(int id, int issueId)
     {
         var component = await _objectManager.AssignIssueToComponent(id, issueId);
 
-        return component is not null
-            ? Ok(component)
-            : NotFound();
+        return component.Result switch
+        { 
+            ServiceResult.Success => Ok(component),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
+    }
+    
+    [HttpPut]
+    [Consumes(MediaTypeNames.Application.Json)]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Put([FromBody] ComponentDto dto)
+    {
+        if (dto.Id == 0) return BadRequest();
+        var component = await _objectManager.UpdateComponentAsync(dto);
+        return component.Result switch
+        {
+            ServiceResult.Success => Ok(component),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
     
     [HttpDelete("{id:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        return await _objectManager.RemoveComponentAsync(id)
-            ? Ok(new
+        var response = await _objectManager.RemoveCapabilityAsync(id);
+        return response.Result switch
+        {
+            ServiceResult.Success => Ok(new
             {
                 success = true,
                 message = $"Component with id: {id} deleted."
-            })
-            : NotFound();
+            }),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
 }

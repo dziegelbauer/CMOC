@@ -79,7 +79,7 @@ public class ComponentRepositoryIntegrationTest
         Assert.Multiple(() =>
         {
             Assert.That(existingComponent, Is.Not.Null);
-            Assert.That(existingComponent?.Id, Is.EqualTo(1));
+            Assert.That(existingComponent.Payload?.Id, Is.EqualTo(1));
         });
     }
 
@@ -109,7 +109,7 @@ public class ComponentRepositoryIntegrationTest
 
         var results = await _componentDb.GetManyAsync();
 
-        Assert.That(results, Has.Count.EqualTo(3));
+        Assert.That(results.Payload, Has.Count.EqualTo(3));
     }
 
     [Test]
@@ -133,14 +133,14 @@ public class ComponentRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _componentDb.GetManyAsync(c => c.SerialNumber != "Test Component 2");
 
         Assert.Multiple(() =>
         {
-            Assert.That(results, Has.Count.EqualTo(2));
-            Assert.That(results.FirstOrDefault(c => c.SerialNumber == "Test Component 2"), Is.Null);
+            Assert.That(results.Payload, Has.Count.EqualTo(2));
+            Assert.That(results.Payload?.FirstOrDefault(c => c.SerialNumber == "Test Component 2"), Is.Null);
         });
     }
 
@@ -162,7 +162,7 @@ public class ComponentRepositoryIntegrationTest
         {
             Assert.That(_db.Components.Count(), Is.EqualTo(2));
             Assert.That(_db.Components.FirstOrDefault(c => c.SerialNumber == "Test addition"), Is.Not.Null);
-            Assert.That(newComponent.Id, Is.Not.Zero);
+            Assert.That(newComponent.Payload?.Id, Is.Not.Zero);
         });
     }
 
@@ -180,8 +180,8 @@ public class ComponentRepositoryIntegrationTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(updatedComponent.Id, Is.EqualTo(1));
-            Assert.That(updatedComponent.SerialNumber, Is.EqualTo("Updated Component"));
+            Assert.That(updatedComponent.Payload?.Id, Is.EqualTo(1));
+            Assert.That(updatedComponent.Payload?.SerialNumber, Is.EqualTo("Updated Component"));
             Assert.That(_db.Components.Count(), Is.EqualTo(1));
             Assert.That(_db.Components.FirstOrDefault(c => c.SerialNumber == "Updated Component"), Is.Not.Null);
         });
@@ -194,19 +194,19 @@ public class ComponentRepositoryIntegrationTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.True);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.Success));
             Assert.That(_db.Components.Count(), Is.Zero);
         });
     }
 
     [Test]
-    public async Task RemoveNonExistingComponentIsFalse()
+    public async Task RemoveNonExistingComponentIsUnsuccessful()
     {
         var result = await _componentDb.RemoveAsync(2);
 
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
+            Assert.That(result.Result, Is.Not.EqualTo(ServiceResult.Success));
             Assert.That(_db.Components.Count(), Is.EqualTo(1));
         });
     }
