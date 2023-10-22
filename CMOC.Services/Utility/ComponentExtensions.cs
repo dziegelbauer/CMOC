@@ -12,7 +12,7 @@ public static class ComponentExtensions
             Id = component.Id,
             SerialNumber = component.SerialNumber,
             TypeId = component.TypeId,
-            Type = component.Type.Name,
+            TypeName = component.Type.Name,
             Operational = component.Operational,
             ComponentOfId = component.ComponentOfId,
             EquipmentId = component.ComponentOf.EquipmentId,

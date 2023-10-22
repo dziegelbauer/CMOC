@@ -13,7 +13,7 @@ public class LocationRepository : Repository, ILocationRepository
     {
     }
 
-    public async Task<LocationDto?> GetAsync(Expression<Func<Location, bool>>? filter = null)
+    public async Task<ServiceResponse<LocationDto>> GetAsync(Expression<Func<Location, bool>>? filter = null)
     {
         var query = _db.Locations.AsNoTracking().AsQueryable();
 
@@ -24,10 +24,25 @@ public class LocationRepository : Repository, ILocationRepository
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.ToDto();
+        if (queryResult is null)
+        {
+            return new ServiceResponse<LocationDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Location not found."
+            };
+        }
+
+        return new ServiceResponse<LocationDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned location."
+        };
     }
 
-    public async Task<List<LocationDto>> GetManyAsync(Expression<Func<Location, bool>>? filter = null)
+    public async Task<ServiceResponse<List<LocationDto>>> GetManyAsync(Expression<Func<Location, bool>>? filter = null)
     {
         var query = _db.Locations.AsNoTracking().AsQueryable();
 
@@ -38,34 +53,44 @@ public class LocationRepository : Repository, ILocationRepository
 
         var queryResult = await query.ToListAsync();
 
-        return queryResult
-            .Select(l => l.ToDto())
-            .ToList();
+        return new ServiceResponse<List<LocationDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(l => l.ToDto())
+                .ToList(),
+            Message = "Successfully returned locations."
+        };
     }
 
-    public async Task<LocationDto> AddAsync(LocationDto dto)
+    public async Task<ServiceResponse<LocationDto>> AddAsync(LocationDto dto)
     {
         var newLocation = await _db.Locations.AddAsync(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetAsync(l => l.Id == newLocation.Entity.Id) ?? throw new Exception();
+        return await GetAsync(l => l.Id == newLocation.Entity.Id);
     }
 
-    public async Task<LocationDto> UpdateAsync(LocationDto dto)
+    public async Task<ServiceResponse<LocationDto>> UpdateAsync(LocationDto dto)
     {
         var updatedLocation = _db.Locations.Update(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetAsync(l => l.Id == updatedLocation.Entity.Id) ?? throw new Exception();
+        return await GetAsync(l => l.Id == updatedLocation.Entity.Id);
     }
 
-    public async Task<bool> RemoveAsync(int id)
+    public async Task<ServiceResponse<LocationDto>> RemoveAsync(int id)
     {
         var locationInUse = _db.Equipment.Any(e => e.LocationId == id);
 
         if (locationInUse)
         {
-            return false;
+            return new ServiceResponse<LocationDto>
+            {
+                Result = ServiceResult.InUse,
+                Payload = null,
+                Message = "Location not found."
+            };
         }
 
-        return await DefaultRemoveAsync<Location>(_db, id);
+        return await DefaultRemoveAsync<Location, LocationDto>(_db, id);
     }
 }

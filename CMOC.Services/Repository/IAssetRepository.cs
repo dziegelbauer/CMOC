@@ -8,9 +8,9 @@ public interface IAssetRepository<T, TDto, TType, TTypeDto> : IRepository<T, TDt
     where TType : class
     where TTypeDto : class?
 {
-    Task<TTypeDto?> GetTypeAsync(Expression<Func<TType, bool>>? filter = null);
-    Task<List<TTypeDto>> GetTypesAsync(Expression<Func<TType, bool>>? filter = null);
-    Task<TTypeDto> AddTypeAsync(TTypeDto dto);
-    Task<TTypeDto> UpdateTypeAsync(TTypeDto dto);
-    Task<bool> RemoveTypeAsync(int id);
+    Task<ServiceResponse<TTypeDto>> GetTypeAsync(Expression<Func<TType, bool>>? filter = null);
+    Task<ServiceResponse<List<TTypeDto>>> GetTypesAsync(Expression<Func<TType, bool>>? filter = null);
+    Task<ServiceResponse<TTypeDto>> AddTypeAsync(TTypeDto dto);
+    Task<ServiceResponse<TTypeDto>> UpdateTypeAsync(TTypeDto dto);
+    Task<ServiceResponse<TTypeDto>> RemoveTypeAsync(int id);
 }

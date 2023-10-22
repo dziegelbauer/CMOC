@@ -13,7 +13,7 @@ public class EquipmentRepository : Repository, IEquipmentRepository
     {
     }
 
-    public async Task<EquipmentDto?> GetAsync(Expression<Func<Equipment, bool>>? filter = null)
+    public async Task<ServiceResponse<EquipmentDto>> GetAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
         var query = _db.Equipment.AsNoTracking().AsQueryable();
 
@@ -26,7 +26,22 @@ public class EquipmentRepository : Repository, IEquipmentRepository
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.ToDto();
+        if (queryResult is null)
+        {
+            return new ServiceResponse<EquipmentDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Equipment item not found."
+            };
+        }
+
+        return new ServiceResponse<EquipmentDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned equipment item."
+        };
     }
 
     private static IQueryable<Equipment> MapJoins(IQueryable<Equipment> query)
@@ -45,7 +60,7 @@ public class EquipmentRepository : Repository, IEquipmentRepository
             .ThenInclude(c => c.Type);
     }
 
-    public async Task<List<EquipmentDto>> GetManyAsync(Expression<Func<Equipment, bool>>? filter = null)
+    public async Task<ServiceResponse<List<EquipmentDto>>> GetManyAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
         var query = _db.Equipment.AsNoTracking().AsQueryable();
 
@@ -57,12 +72,18 @@ public class EquipmentRepository : Repository, IEquipmentRepository
         query = MapJoins(query);
 
         var queryResult = await query.ToListAsync();
-        return queryResult
-            .Select(e => e.ToDto())
-            .ToList();
+        
+        return new ServiceResponse<List<EquipmentDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(c => c.ToDto())
+                .ToList(),
+            Message = "Successfully returned equipment items."
+        };
     }
 
-    public async Task<EquipmentDto> AddAsync(EquipmentDto dto)
+    public async Task<ServiceResponse<EquipmentDto>> AddAsync(EquipmentDto dto)
     {
         var equipment = await _db.Equipment.AddAsync(dto.ToEntity());
 
@@ -82,16 +103,16 @@ public class EquipmentRepository : Repository, IEquipmentRepository
         await _db.ServiceSupportRelationships.AddRangeAsync(newServiceSupportRelationships);
 
         await _db.SaveChangesAsync();
-        return await GetAsync(e => e.Id == equipment.Entity.Id) ?? throw new Exception();
+        return await GetAsync(e => e.Id == equipment.Entity.Id);
     }
 
-    public async Task<EquipmentDto> UpdateAsync(EquipmentDto dto)
+    public async Task<ServiceResponse<EquipmentDto>> UpdateAsync(EquipmentDto dto)
     {
         var equipment = _db.Equipment.Update(dto.ToEntity());
 
         var supportRelationships =
             await _db.ServiceSupportRelationships
-                .Where(ssr => ssr.EquipmentId == dto.Id)
+                .Where(ssr => ssr.EquipmentId == equipment.Entity.Id)
                 .ToListAsync();
 
         supportRelationships
@@ -117,10 +138,10 @@ public class EquipmentRepository : Repository, IEquipmentRepository
 
         await _db.SaveChangesAsync();
 
-        return await GetAsync(e => e.Id == dto.Id) ?? throw new Exception();
+        return await GetAsync(e => e.Id == dto.Id);
     }
 
-    public async Task<bool> RemoveAsync(int id)
+    public async Task<ServiceResponse<EquipmentDto>> RemoveAsync(int id)
     {
         var equipment = await _db.Equipment
             .Include(e => e.Components)
@@ -129,7 +150,12 @@ public class EquipmentRepository : Repository, IEquipmentRepository
 
         if (equipment is null)
         {
-            return false;
+            return new ServiceResponse<EquipmentDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Equipment item not found."
+            };
         }
 
         equipment.Components.ForEach(cr =>
@@ -152,10 +178,15 @@ public class EquipmentRepository : Repository, IEquipmentRepository
         _db.Remove(equipment);
         await _db.SaveChangesAsync();
         
-        return true;
+        return new ServiceResponse<EquipmentDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = null,
+            Message = "Equipment item deleted successfully."
+        };
     }
 
-    public async Task<EquipmentTypeDto?> GetTypeAsync(Expression<Func<EquipmentType, bool>>? filter = null)
+    public async Task<ServiceResponse<EquipmentTypeDto>> GetTypeAsync(Expression<Func<EquipmentType, bool>>? filter = null)
     {
         var query = _db.EquipmentTypes.AsNoTracking().AsQueryable();
 
@@ -166,10 +197,25 @@ public class EquipmentRepository : Repository, IEquipmentRepository
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.ToDto();
+        if (queryResult is null)
+        {
+            return new ServiceResponse<EquipmentTypeDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Equipment type not found."
+            };
+        }
+
+        return new ServiceResponse<EquipmentTypeDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned equipment type."
+        };
     }
 
-    public async Task<List<EquipmentTypeDto>> GetTypesAsync(Expression<Func<EquipmentType, bool>>? filter = null)
+    public async Task<ServiceResponse<List<EquipmentTypeDto>>> GetTypesAsync(Expression<Func<EquipmentType, bool>>? filter = null)
     {
         var query = _db.EquipmentTypes.AsNoTracking().AsQueryable();
 
@@ -180,34 +226,44 @@ public class EquipmentRepository : Repository, IEquipmentRepository
 
         var queryResult = await query.ToListAsync();
 
-        return queryResult
-            .Select(et => et.ToDto())
-            .ToList();
+        return new ServiceResponse<List<EquipmentTypeDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(et => et.ToDto())
+                .ToList(),
+            Message = "Successfully returned component types."
+        };
     }
 
-    public async Task<EquipmentTypeDto> AddTypeAsync(EquipmentTypeDto dto)
+    public async Task<ServiceResponse<EquipmentTypeDto>> AddTypeAsync(EquipmentTypeDto dto)
     {
         var newEquipmentType = await _db.EquipmentTypes.AddAsync(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetTypeAsync(et => et.Id == newEquipmentType.Entity.Id) ?? throw new Exception();
+        return await GetTypeAsync(et => et.Id == newEquipmentType.Entity.Id);
     }
 
-    public async Task<EquipmentTypeDto> UpdateTypeAsync(EquipmentTypeDto dto)
+    public async Task<ServiceResponse<EquipmentTypeDto>> UpdateTypeAsync(EquipmentTypeDto dto)
     {
         var updatedEquipmentType = _db.EquipmentTypes.Update(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetTypeAsync(ct => ct.Id == updatedEquipmentType.Entity.Id) ?? throw new Exception();
+        return await GetTypeAsync(ct => ct.Id == updatedEquipmentType.Entity.Id);
     }
 
-    public async Task<bool> RemoveTypeAsync(int id)
+    public async Task<ServiceResponse<EquipmentTypeDto>> RemoveTypeAsync(int id)
     {
         var typeInUse = _db.Equipment.Any(c => c.TypeId == id);
 
         if (typeInUse)
         {
-            return false;
+            return new ServiceResponse<EquipmentTypeDto>
+            {
+                Result = ServiceResult.InUse,
+                Payload = null,
+                Message = "Equipment type could not be deleted. Remove any dependencies related to it."
+            };
         }
 
-        return await DefaultRemoveAsync<EquipmentType>(_db, id);
+        return await DefaultRemoveAsync<EquipmentType, EquipmentTypeDto>(_db, id);
     }
 }

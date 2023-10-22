@@ -17,40 +17,80 @@ public class ComponentTypeController : ControllerBase
     }
 
     [HttpGet]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get()
     {
         var componentTypeList = await _objectManager.GetComponentTypesAsync();
-        return Ok(new { data = componentTypeList });
+        return Ok(componentTypeList);
     }
     
     [HttpGet("{id:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int id)
     {
         var componentType = await _objectManager.GetComponentTypeAsync(et => et.Id == id);
-        return componentType is not null
-        ? Ok(new { data = componentType })
-        : NotFound();
+        return componentType.Result switch
+        {
+            ServiceResult.Success => Ok(componentType),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
 
     [HttpPost]
     [Consumes(MediaTypeNames.Application.Json)]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Post([FromBody] ComponentTypeDto dto)
     {
         var componentType = await _objectManager.AddComponentTypeAsync(dto);
-        return componentType.Id != 0
-            ? StatusCode(StatusCodes.Status201Created, componentType)
-            : BadRequest();
+        return componentType.Result switch
+        {
+            ServiceResult.Success => Ok(componentType),
+            _ => BadRequest()
+        };
+    }
+    
+    [HttpPut]
+    [Consumes(MediaTypeNames.Application.Json)]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Put([FromBody] ComponentTypeDto dto)
+    {
+        if (dto.Id == 0) return BadRequest();
+        var componentType = await _objectManager.UpdateComponentTypeAsync(dto);
+        return componentType.Result switch
+        {
+            ServiceResult.Success => Ok(componentType),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
     
     [HttpDelete("{id:int}")]
+    [Produces(MediaTypeNames.Application.Json)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        return await _objectManager.RemoveComponentTypeAsync(id)
-            ? Ok(new
+        var response = await _objectManager.RemoveComponentTypeAsync(id);
+        return response.Result switch
+        {
+            ServiceResult.Success => Ok(new
             {
                 success = true,
                 message = $"Component type with id: {id} deleted."
-            })
-            : NotFound();
+            }),
+            ServiceResult.NotFound => NotFound(),
+            _ => BadRequest()
+        };
     }
 }
