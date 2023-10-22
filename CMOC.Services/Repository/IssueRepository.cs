@@ -13,7 +13,7 @@ public class IssueRepository : Repository, IIssueRepository
     {
     }
     
-    public async Task<IssueDto?> GetAsync(Expression<Func<Issue, bool>>? filter = null)
+    public async Task<ServiceResponse<IssueDto>> GetAsync(Expression<Func<Issue, bool>>? filter = null)
     {
         var query = _db.Issues.AsNoTracking().AsQueryable();
 
@@ -24,10 +24,25 @@ public class IssueRepository : Repository, IIssueRepository
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.ToDto();
+        if (queryResult is null)
+        {
+            return new ServiceResponse<IssueDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Issue not found."
+            };
+        }
+
+        return new ServiceResponse<IssueDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned issue."
+        };
     }
     
-    public async Task<List<IssueDto>> GetManyAsync(Expression<Func<Issue, bool>>? filter = null)
+    public async Task<ServiceResponse<List<IssueDto>>> GetManyAsync(Expression<Func<Issue, bool>>? filter = null)
     {
         var query = _db.Issues.AsNoTracking().AsQueryable();
 
@@ -38,36 +53,34 @@ public class IssueRepository : Repository, IIssueRepository
 
         var queryResult = await query.ToListAsync();
 
-        return queryResult
-            .Select(t => t.ToDto())
-            .ToList();
-    }
-    
-    private async Task<IssueDto?> GetByIdAsync(int id) 
-    {
-        var queryResult = await _db.Issues.FindAsync(id);
-
-        return queryResult?.ToDto();
+        return new ServiceResponse<List<IssueDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(t => t.ToDto())
+                .ToList(),
+            Message = "Successfully returned issues."
+        };
     }
 
-    public async Task<IssueDto> AddAsync(IssueDto dto)
+    public async Task<ServiceResponse<IssueDto>> AddAsync(IssueDto dto)
     {
         var entity = await _db.Issues.AddAsync(dto.ToEntity());
         await _db.SaveChangesAsync();
         
         var idProperty = entity.Entity.Id;
         
-        return await GetByIdAsync(idProperty) ?? throw new Exception();
+        return await GetAsync(i => i.Id == idProperty);
     }
 
-    public async Task<IssueDto> UpdateAsync(IssueDto dto)
+    public async Task<ServiceResponse<IssueDto>> UpdateAsync(IssueDto dto)
     {
         var entity = _db.Issues.Update(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetByIdAsync(entity.Entity.Id) ?? throw new Exception();
+        return await GetAsync(i => i.Id == entity.Entity.Id);
     }
 
-    public async Task<bool> RemoveAsync(int id)
+    public async Task<ServiceResponse<IssueDto>> RemoveAsync(int id)
     {
         await _db.Equipment
             .Where(e => e.IssueId == id)
@@ -86,6 +99,6 @@ public class IssueRepository : Repository, IIssueRepository
 
         await _db.SaveChangesAsync();
 
-        return await DefaultRemoveAsync<Issue>(_db, id);
+        return await DefaultRemoveAsync<Issue, IssueDto>(_db, id);
     }
 }

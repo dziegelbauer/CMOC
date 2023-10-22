@@ -40,8 +40,8 @@ public class ServiceRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(() => existingService != null);
-            Assert.That(() => existingService?.Id == 1);
+            Assert.That(existingService.Payload, Is.Not.Null);
+            Assert.That(existingService.Payload?.Id, Is.EqualTo(1));
         });
     }
 
@@ -62,11 +62,11 @@ public class ServiceRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _serviceDb.GetManyAsync();
         
-        Assert.That(results, Has.Count.EqualTo(3));
+        Assert.That(results.Payload, Has.Count.EqualTo(3));
     }
     
     [Test]
@@ -86,14 +86,14 @@ public class ServiceRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _serviceDb.GetManyAsync(l => l.Name != "Service 2");
         
         Assert.Multiple(() =>
         {
-            Assert.That(results, Has.Count.EqualTo(2));
-            Assert.That(results.FirstOrDefault(l => l.Name == "Service 2"), Is.Null);
+            Assert.That(results.Payload, Has.Count.EqualTo(2));
+            Assert.That(results.Payload?.FirstOrDefault(l => l.Name == "Service 2"), Is.Null);
         });
     }
 
@@ -112,7 +112,7 @@ public class ServiceRepositoryIntegrationTest
         {
             Assert.That(_db.Services.Count(),Is.EqualTo(2));
             Assert.That(_db.Services.FirstOrDefault(s => s.Name == "Test addition"), Is.Not.Null);
-            Assert.That(newService.Id, Is.Not.Zero);
+            Assert.That(newService.Payload?.Id, Is.Not.Zero);
         });
     }
 
@@ -127,8 +127,8 @@ public class ServiceRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(updatedService.Id, Is.EqualTo(1));
-            Assert.That(updatedService.Name, Is.EqualTo("Service 2"));
+            Assert.That(updatedService.Payload?.Id, Is.EqualTo(1));
+            Assert.That(updatedService.Payload?.Name, Is.EqualTo("Service 2"));
             Assert.That(_db.Services.Count(), Is.EqualTo(1));
             Assert.That(_db.Services.FirstOrDefault(s => s.Name == "Service 2"), Is.Not.Null);
         });
@@ -141,7 +141,7 @@ public class ServiceRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.True);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.Success));
             Assert.That(_db.Services.Count(), Is.Zero);
         });
     }
@@ -191,15 +191,15 @@ public class ServiceRepositoryIntegrationTest
             FailureThreshold = 1
         });
         
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var result = await _serviceDb.RemoveAsync(1);
         var result2 = await _serviceDb.RemoveAsync(2);
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
-            Assert.That(result2, Is.False);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.InUse));
+            Assert.That(result2.Result, Is.EqualTo(ServiceResult.InUse));
             Assert.That(_db.Services.Count(), Is.EqualTo(2));
         });
     }
@@ -211,7 +211,7 @@ public class ServiceRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
+            Assert.That(result.Result, Is.Not.EqualTo(ServiceResult.Success));
             Assert.That(_db.Services.Count(), Is.EqualTo(1));
         });
     }

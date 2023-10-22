@@ -56,8 +56,8 @@ public class EquipmentRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(() => existingEquipment != null);
-            Assert.That(() => existingEquipment?.Id == 1);
+            Assert.That(existingEquipment.Payload, Is.Not.Null);
+            Assert.That(existingEquipment.Payload?.Id, Is.EqualTo(1));
         });
     }
 
@@ -84,11 +84,11 @@ public class EquipmentRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _locDb.GetManyAsync();
         
-        Assert.That(results, Has.Count.EqualTo(3));
+        Assert.That(results.Payload, Has.Count.EqualTo(3));
     }
     
     [Test]
@@ -114,14 +114,14 @@ public class EquipmentRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _locDb.GetManyAsync(e => e.SerialNumber != "Test Equipment 2");
         
         Assert.Multiple(() =>
         {
-            Assert.That(results, Has.Count.EqualTo(2));
-            Assert.That(results.FirstOrDefault(e => e.SerialNumber == "Test Equipment 2"), Is.Null);
+            Assert.That(results.Payload, Has.Count.EqualTo(2));
+            Assert.That(results.Payload?.FirstOrDefault(e => e.SerialNumber == "Test Equipment 2"), Is.Null);
         });
     }
 
@@ -143,7 +143,7 @@ public class EquipmentRepositoryIntegrationTest
         {
             Assert.That(_db.Equipment.Count(),Is.EqualTo(2));
             Assert.That(_db.Equipment.FirstOrDefault(e => e.SerialNumber == "Test Equipment 3"), Is.Not.Null);
-            Assert.That(newEquipment.Id, Is.Not.Zero);
+            Assert.That(newEquipment.Payload?.Id, Is.Not.Zero);
         });
     }
 
@@ -161,8 +161,8 @@ public class EquipmentRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(updatedEquipment.Id, Is.EqualTo(1));
-            Assert.That(updatedEquipment.SerialNumber, Is.EqualTo("Test Equipment 3"));
+            Assert.That(updatedEquipment.Payload?.Id, Is.EqualTo(1));
+            Assert.That(updatedEquipment.Payload?.SerialNumber, Is.EqualTo("Test Equipment 3"));
             Assert.That(_db.Equipment.Count(), Is.EqualTo(1));
             Assert.That(_db.Equipment.FirstOrDefault(l => l.SerialNumber == "Test Equipment 3"), Is.Not.Null);
         });
@@ -175,19 +175,19 @@ public class EquipmentRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.True);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.Success));
             Assert.That(_db.Equipment.Count(), Is.Zero);
         });
     }
 
     [Test]
-    public async Task RemoveNonExistingEquipmentIsFalse()
+    public async Task RemoveNonExistingEquipmentIsUnsuccessful()
     {
         var result = await _locDb.RemoveAsync(2);
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
+            Assert.That(result.Result, Is.Not.EqualTo(ServiceResult.Success));
             Assert.That(_db.Equipment.Count(), Is.EqualTo(1));
         });
     }

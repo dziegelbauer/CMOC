@@ -40,8 +40,8 @@ public class LocationRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(() => existingLocation != null);
-            Assert.That(() => existingLocation?.Id == 1);
+            Assert.That(existingLocation.Payload, Is.Not.Null);
+            Assert.That(existingLocation.Payload?.Id, Is.EqualTo(1));
         });
     }
 
@@ -62,11 +62,11 @@ public class LocationRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _locDb.GetManyAsync();
         
-        Assert.That(results, Has.Count.EqualTo(3));
+        Assert.That(results.Payload, Has.Count.EqualTo(3));
     }
     
     [Test]
@@ -86,14 +86,14 @@ public class LocationRepositoryIntegrationTest
             }
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var results = await _locDb.GetManyAsync(l => l.Name != "Honduras");
         
         Assert.Multiple(() =>
         {
-            Assert.That(results, Has.Count.EqualTo(2));
-            Assert.That(results.FirstOrDefault(l => l.Name == "Honduras"), Is.Null);
+            Assert.That(results.Payload, Has.Count.EqualTo(2));
+            Assert.That(results.Payload?.FirstOrDefault(l => l.Name == "Honduras"), Is.Null);
         });
     }
 
@@ -112,7 +112,7 @@ public class LocationRepositoryIntegrationTest
         {
             Assert.That(_db.Locations.Count(),Is.EqualTo(2));
             Assert.That(_db.Locations.FirstOrDefault(l => l.Name == "Test addition"), Is.Not.Null);
-            Assert.That(newLocation.Id, Is.Not.Zero);
+            Assert.That(newLocation.Payload?.Id, Is.Not.Zero);
         });
     }
 
@@ -127,8 +127,8 @@ public class LocationRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(updatedLocation.Id, Is.EqualTo(1));
-            Assert.That(updatedLocation.Name, Is.EqualTo("Jamaica"));
+            Assert.That(updatedLocation.Payload?.Id, Is.EqualTo(1));
+            Assert.That(updatedLocation.Payload?.Name, Is.EqualTo("Jamaica"));
             Assert.That(_db.Locations.Count(), Is.EqualTo(1));
             Assert.That(_db.Locations.FirstOrDefault(l => l.Name == "Jamaica"), Is.Not.Null);
         });
@@ -141,7 +141,7 @@ public class LocationRepositoryIntegrationTest
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.True);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.Success));
             Assert.That(_db.Locations.Count(), Is.Zero);
         });
     }
@@ -157,25 +157,25 @@ public class LocationRepositoryIntegrationTest
             SerialNumber = ""
         });
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
 
         var result = await _locDb.RemoveAsync(1);
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
+            Assert.That(result.Result, Is.EqualTo(ServiceResult.InUse));
             Assert.That(_db.Locations.Count(), Is.EqualTo(1));
         });
     }
 
     [Test]
-    public async Task RemoveNonExistingLocationIsFalse()
+    public async Task RemoveNonExistingLocationIsUnsuccessful()
     {
         var result = await _locDb.RemoveAsync(2);
         
         Assert.Multiple(() =>
         {
-            Assert.That(result, Is.False);
+            Assert.That(result.Result, Is.Not.EqualTo(ServiceResult.Success));
             Assert.That(_db.Locations.Count(), Is.EqualTo(1));
         });
     }

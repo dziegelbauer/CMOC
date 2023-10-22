@@ -13,7 +13,7 @@ public class ComponentRepository : Repository, IComponentRepository
     {
     }
 
-    public async Task<ComponentDto?> GetAsync(Expression<Func<Component, bool>>? filter = null)
+    public async Task<ServiceResponse<ComponentDto>> GetAsync(Expression<Func<Component, bool>>? filter = null)
     {
         var query = _db.Components.AsNoTracking().AsQueryable();
 
@@ -25,8 +25,23 @@ public class ComponentRepository : Repository, IComponentRepository
         query = MapJoins(query);
 
         var queryResult = await query.FirstOrDefaultAsync();
+        
+        if (queryResult is null)
+        {
+            return new ServiceResponse<ComponentDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Component not found."
+            };
+        }
 
-        return queryResult?.ToDto();
+        return new ServiceResponse<ComponentDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned component."
+        };
     }
 
     private static IQueryable<Component> MapJoins(IQueryable<Component> query)
@@ -40,7 +55,7 @@ public class ComponentRepository : Repository, IComponentRepository
         return query;
     }
 
-    public async Task<List<ComponentDto>> GetManyAsync(Expression<Func<Component, bool>>? filter = null)
+    public async Task<ServiceResponse<List<ComponentDto>>> GetManyAsync(Expression<Func<Component, bool>>? filter = null)
     {
         var query = _db.Components.AsNoTracking().AsQueryable();
 
@@ -53,12 +68,17 @@ public class ComponentRepository : Repository, IComponentRepository
 
         var queryResult = await query.ToListAsync();
 
-        return queryResult
-            .Select(c => c.ToDto())
-            .ToList();
+        return new ServiceResponse<List<ComponentDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(c => c.ToDto())
+                .ToList(),
+            Message = "Successfully returned components."
+        };
     }
 
-    public async Task<ComponentDto> AddAsync(ComponentDto dto)
+    public async Task<ServiceResponse<ComponentDto>> AddAsync(ComponentDto dto)
     {
         var componentRelationship =
             await _db.ComponentRelationships.FirstOrDefaultAsync(cr =>
@@ -79,10 +99,10 @@ public class ComponentRepository : Repository, IComponentRepository
         component.ComponentOf = componentRelationship;
         await _db.Components.AddAsync(component);
         await _db.SaveChangesAsync();
-        return await GetAsync(c => c.Id == component.Id) ?? throw new Exception();
+        return await GetAsync(c => c.Id == component.Id);
     }
 
-    public async Task<ComponentDto> UpdateAsync(ComponentDto dto)
+    public async Task<ServiceResponse<ComponentDto>> UpdateAsync(ComponentDto dto)
     {
         var component = await _db.Components.FindAsync(dto.Id);
 
@@ -139,16 +159,21 @@ public class ComponentRepository : Repository, IComponentRepository
         _db.Components.Update(component);
         await _db.SaveChangesAsync();
         
-        return await GetAsync(c => c.Id == dto.Id) ?? throw new Exception();
+        return await GetAsync(c => c.Id == dto.Id);
     }
 
-    public async Task<bool> RemoveAsync(int id)
+    public async Task<ServiceResponse<ComponentDto>> RemoveAsync(int id)
     {
         var component = await _db.Components.FindAsync(id);
 
         if (component is null)
         {
-            return false;
+            return new ServiceResponse<ComponentDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Service not found."
+            };
         }
 
         var componentInUse = _db.ComponentRelationships.Any(cr => cr.Id == component.ComponentOfId);
@@ -166,10 +191,15 @@ public class ComponentRepository : Repository, IComponentRepository
 
         await _db.SaveChangesAsync();
         
-        return true;
+        return new ServiceResponse<ComponentDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = null,
+            Message = "component deleted successfully."
+        };            
     }
 
-    public async Task<ComponentTypeDto?> GetTypeAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    public async Task<ServiceResponse<ComponentTypeDto>> GetTypeAsync(Expression<Func<ComponentType, bool>>? filter = null)
     {
         var query = _db.ComponentTypes.AsNoTracking().AsQueryable();
 
@@ -180,10 +210,25 @@ public class ComponentRepository : Repository, IComponentRepository
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.ToDto();
+        if (queryResult is null)
+        {
+            return new ServiceResponse<ComponentTypeDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Component type not found."
+            };
+        }
+
+        return new ServiceResponse<ComponentTypeDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned component type."
+        };
     }
 
-    public async Task<List<ComponentTypeDto>> GetTypesAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    public async Task<ServiceResponse<List<ComponentTypeDto>>> GetTypesAsync(Expression<Func<ComponentType, bool>>? filter = null)
     {
         var query = _db.ComponentTypes.AsNoTracking().AsQueryable();
 
@@ -194,34 +239,44 @@ public class ComponentRepository : Repository, IComponentRepository
 
         var queryResult = await query.ToListAsync();
 
-        return queryResult
-            .Select(ct => ct.ToDto())
-            .ToList();
+        return new ServiceResponse<List<ComponentTypeDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(ct => ct.ToDto())
+                .ToList(),
+            Message = "Successfully returned component types."
+        };
     }
 
-    public async Task<ComponentTypeDto> AddTypeAsync(ComponentTypeDto dto)
+    public async Task<ServiceResponse<ComponentTypeDto>> AddTypeAsync(ComponentTypeDto dto)
     {
         var newComponentType = await _db.ComponentTypes.AddAsync(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetTypeAsync(ct => ct.Id == newComponentType.Entity.Id) ?? throw new Exception();
+        return await GetTypeAsync(ct => ct.Id == newComponentType.Entity.Id);
     }
 
-    public async Task<ComponentTypeDto> UpdateTypeAsync(ComponentTypeDto dto)
+    public async Task<ServiceResponse<ComponentTypeDto>> UpdateTypeAsync(ComponentTypeDto dto)
     {
         var updatedComponentType = _db.ComponentTypes.Update(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetTypeAsync(ct => ct.Id == updatedComponentType.Entity.Id) ?? throw new Exception();
+        return await GetTypeAsync(ct => ct.Id == updatedComponentType.Entity.Id);
     }
 
-    public async Task<bool> RemoveTypeAsync(int id)
+    public async Task<ServiceResponse<ComponentTypeDto>> RemoveTypeAsync(int id)
     {
         var typeInUse = _db.Components.Any(c => c.TypeId == id);
 
         if (typeInUse)
         {
-            return false;
+            return new ServiceResponse<ComponentTypeDto>
+            {
+                Result = ServiceResult.InUse,
+                Payload = null,
+                Message = "Capability type could not be deleted. Remove any dependencies related to it."
+            };
         }
 
-        return await DefaultRemoveAsync<ComponentType>(_db, id);
+        return await DefaultRemoveAsync<ComponentType, ComponentTypeDto>(_db, id);
     }
 }

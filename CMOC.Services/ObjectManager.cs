@@ -35,27 +35,27 @@ public class ObjectManager : IObjectManager
     }
 
     #region Capability Methods
-    public async Task<CapabilityDto?> GetCapabilityAsync(Expression<Func<Capability, bool>>? filter = null)
+    public async Task<ServiceResponse<CapabilityDto>> GetCapabilityAsync(Expression<Func<Capability, bool>>? filter = null)
     {
         return await _capabilityRepository.GetAsync(filter);
     }
 
-    public async Task<List<CapabilityDto>> GetCapabilitiesAsync(Expression<Func<Capability, bool>>? filter = null)
+    public async Task<ServiceResponse<List<CapabilityDto>>> GetCapabilitiesAsync(Expression<Func<Capability, bool>>? filter = null)
     {
         return await _capabilityRepository.GetManyAsync(filter);
     }
 
-    public async Task<CapabilityDto> AddCapabilityAsync(CapabilityDto dto)
+    public async Task<ServiceResponse<CapabilityDto>> AddCapabilityAsync(CapabilityDto dto)
     {
         return await _capabilityRepository.AddAsync(dto);
     }
 
-    public async Task<CapabilityDto> UpdateCapabilityAsync(CapabilityDto dto)
+    public async Task<ServiceResponse<CapabilityDto>> UpdateCapabilityAsync(CapabilityDto dto)
     {
         return await _capabilityRepository.UpdateAsync(dto);
     }
 
-    public async Task<bool> RemoveCapabilityAsync(int id)
+    public async Task<ServiceResponse<CapabilityDto>> RemoveCapabilityAsync(int id)
     {
         return await _capabilityRepository.RemoveAsync(id);
     }
@@ -63,27 +63,27 @@ public class ObjectManager : IObjectManager
     #endregion
 
     #region Service Methods
-    public async Task<ServiceDto?> GetServiceAsync(Expression<Func<Service, bool>>? filter = null)
+    public async Task<ServiceResponse<ServiceDto>> GetServiceAsync(Expression<Func<Service, bool>>? filter = null)
     {
         return await _serviceRepository.GetAsync(filter);
     }
 
-    public async Task<List<ServiceDto>> GetServicesAsync(Expression<Func<Service, bool>>? filter = null)
+    public async Task<ServiceResponse<List<ServiceDto>>> GetServicesAsync(Expression<Func<Service, bool>>? filter = null)
     {
         return await _serviceRepository.GetManyAsync(filter);
     }
 
-    public async Task<ServiceDto> AddServiceAsync(ServiceDto dto)
+    public async Task<ServiceResponse<ServiceDto>> AddServiceAsync(ServiceDto dto)
     {
         return await _serviceRepository.AddAsync(dto);
     }
 
-    public async Task<ServiceDto> UpdateServiceAsync(ServiceDto dto)
+    public async Task<ServiceResponse<ServiceDto>> UpdateServiceAsync(ServiceDto dto)
     {
         return await _serviceRepository.UpdateAsync(dto);
     }
 
-    public async Task<bool> RemoveServiceAsync(int id)
+    public async Task<ServiceResponse<ServiceDto>> RemoveServiceAsync(int id)
     {
         return await _serviceRepository.RemoveAsync(id);
     }
@@ -91,27 +91,27 @@ public class ObjectManager : IObjectManager
     #endregion
 
     #region Location Methods
-    public async Task<LocationDto?> GetLocationAsync(Expression<Func<Location, bool>>? filter = null)
+    public async Task<ServiceResponse<LocationDto>> GetLocationAsync(Expression<Func<Location, bool>>? filter = null)
     {
         return await _locationRepository.GetAsync(filter);
     }
 
-    public async Task<List<LocationDto>> GetLocationsAsync(Expression<Func<Location, bool>>? filter = null)
+    public async Task<ServiceResponse<List<LocationDto>>> GetLocationsAsync(Expression<Func<Location, bool>>? filter = null)
     {
         return await _locationRepository.GetManyAsync(filter);
     }
 
-    public async Task<LocationDto> AddLocationAsync(LocationDto dto)
+    public async Task<ServiceResponse<LocationDto>> AddLocationAsync(LocationDto dto)
     {
         return await _locationRepository.AddAsync(dto);
     }
 
-    public async Task<LocationDto> UpdateLocationAsync(LocationDto dto)
+    public async Task<ServiceResponse<LocationDto>> UpdateLocationAsync(LocationDto dto)
     {
         return await _locationRepository.UpdateAsync(dto);
     }
 
-    public async Task<bool> RemoveLocationAsync(int id)
+    public async Task<ServiceResponse<LocationDto>> RemoveLocationAsync(int id)
     {
         return await _locationRepository.RemoveAsync(id);
     }
@@ -119,27 +119,27 @@ public class ObjectManager : IObjectManager
     #endregion
 
     #region Equipment Methods
-    public async Task<EquipmentDto?> GetEquipmentItemAsync(Expression<Func<Equipment, bool>>? filter = null)
+    public async Task<ServiceResponse<EquipmentDto>> GetEquipmentItemAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
         return await _equipmentRepository.GetAsync(filter);
     }
 
-    public async Task<List<EquipmentDto>> GetEquipmentItemsAsync(Expression<Func<Equipment, bool>>? filter = null)
+    public async Task<ServiceResponse<List<EquipmentDto>>> GetEquipmentItemsAsync(Expression<Func<Equipment, bool>>? filter = null)
     {
         return await _equipmentRepository.GetManyAsync(filter);
     }
 
-    public async Task<EquipmentDto> AddEquipmentItemAsync(EquipmentDto dto)
+    public async Task<ServiceResponse<EquipmentDto>> AddEquipmentItemAsync(EquipmentDto dto)
     {
         return await _equipmentRepository.AddAsync(dto);
     }
 
-    public async Task<EquipmentDto> UpdateEquipmentItemAsync(EquipmentDto dto)
+    public async Task<ServiceResponse<EquipmentDto>> UpdateEquipmentItemAsync(EquipmentDto dto)
     {
         return await _equipmentRepository.UpdateAsync(dto);
     }
 
-    public async Task<bool> RemoveEquipmentItemAsync(int id)
+    public async Task<ServiceResponse<EquipmentDto>> RemoveEquipmentItemAsync(int id)
     {
         return await _equipmentRepository.RemoveAsync(id);
     }
@@ -147,55 +147,60 @@ public class ObjectManager : IObjectManager
     #endregion
 
     #region EquipmentType Methods
-    public async Task<EquipmentTypeDto?> GetEquipmentTypeAsync(Expression<Func<EquipmentType, bool>>? filter = null)
+    public async Task<ServiceResponse<EquipmentTypeDto>> GetEquipmentTypeAsync(Expression<Func<EquipmentType, bool>>? filter = null)
     {
         return await _equipmentRepository.GetTypeAsync(filter);
     }
 
-    public async Task<List<EquipmentTypeDto>> GetEquipmentTypesAsync(
+    public async Task<ServiceResponse<List<EquipmentTypeDto>>> GetEquipmentTypesAsync(
         Expression<Func<EquipmentType, bool>>? filter = null)
     {
         return await _equipmentRepository.GetTypesAsync(filter);
     }
 
-    public async Task<EquipmentTypeDto> AddEquipmentTypeAsync(EquipmentTypeDto dto)
+    public async Task<ServiceResponse<EquipmentTypeDto>> AddEquipmentTypeAsync(EquipmentTypeDto dto)
     {
         return await _equipmentRepository.AddTypeAsync(dto);
     }
 
-    public async Task<EquipmentTypeDto> UpdateEquipmentTypeAsync(EquipmentTypeDto dto)
+    public async Task<ServiceResponse<EquipmentTypeDto>> UpdateEquipmentTypeAsync(EquipmentTypeDto dto)
     {
         return await _equipmentRepository.UpdateTypeAsync(dto);
     }
 
-    public async Task<bool> RemoveEquipmentTypeAsync(int id)
+    public async Task<ServiceResponse<EquipmentTypeDto>> RemoveEquipmentTypeAsync(int id)
     {
         return await _equipmentRepository.RemoveTypeAsync(id);
     }
 
-    public async Task<EquipmentDto?> AssignIssueToEquipment(int equipmentId, int issueId)
+    public async Task<ServiceResponse<EquipmentDto>> AssignIssueToEquipment(int equipmentId, int issueId)
     {
-        var equipment = await _equipmentRepository.GetAsync(e => e.Id == equipmentId);
+        var equipmentResponse = await _equipmentRepository.GetAsync(e => e.Id == equipmentId);
 
-        if (equipment is null)
+        if (equipmentResponse.Result != ServiceResult.Success)
         {
-            return null;
+            return equipmentResponse;
         }
         
-        var issue = await _issueRepository.GetAsync(i => i.Id == issueId);
+        var issueResponse = await _issueRepository.GetAsync(i => i.Id == issueId);
 
-        if (issue is null)
+        if (issueResponse.Result != ServiceResult.Success)
         {
-            return null;
+            return new ServiceResponse<EquipmentDto>
+            {
+                Result = issueResponse.Result,
+                Payload = null,
+                Message = issueResponse.Message
+            };
         }
 
-        equipment.IssueId = issueId;
+        equipmentResponse.Payload!.IssueId = issueId;
 
-        var updatedEquipment = await _equipmentRepository.UpdateAsync(equipment);
+        var updatedEquipment = await _equipmentRepository.UpdateAsync(equipmentResponse.Payload);
 
-        if (updatedEquipment.IssueId is null)
+        if (updatedEquipment.Result != ServiceResult.Success)
         {
-            return null;
+            return updatedEquipment;
         }
 
         return await _equipmentRepository.GetAsync(e => e.Id == equipmentId);
@@ -205,27 +210,27 @@ public class ObjectManager : IObjectManager
 
     #region Component Methods
 
-    public async Task<ComponentDto?> GetComponentAsync(Expression<Func<Component, bool>>? filter = null)
+    public async Task<ServiceResponse<ComponentDto>> GetComponentAsync(Expression<Func<Component, bool>>? filter = null)
     {
         return await _componentRepository.GetAsync(filter);
     }
 
-    public async Task<List<ComponentDto>> GetComponentsAsync(Expression<Func<Component, bool>>? filter = null)
+    public async Task<ServiceResponse<List<ComponentDto>>> GetComponentsAsync(Expression<Func<Component, bool>>? filter = null)
     {
         return await _componentRepository.GetManyAsync(filter);
     }
 
-    public async Task<ComponentDto> AddComponentAsync(ComponentDto dto)
+    public async Task<ServiceResponse<ComponentDto>> AddComponentAsync(ComponentDto dto)
     {
         return await _componentRepository.AddAsync(dto);
     }
 
-    public async Task<ComponentDto> UpdateComponentAsync(ComponentDto dto)
+    public async Task<ServiceResponse<ComponentDto>> UpdateComponentAsync(ComponentDto dto)
     {
         return await _componentRepository.UpdateAsync(dto);
     }
 
-    public async Task<bool> RemoveComponentAsync(int id)
+    public async Task<ServiceResponse<ComponentDto>> RemoveComponentAsync(int id)
     {
         return await _componentRepository.RemoveAsync(id);
     }
@@ -233,78 +238,83 @@ public class ObjectManager : IObjectManager
     #endregion
 
     #region ComponentType Methods
-    public async Task<ComponentTypeDto?> GetComponentTypeAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    public async Task<ServiceResponse<ComponentTypeDto>> GetComponentTypeAsync(Expression<Func<ComponentType, bool>>? filter = null)
     {
         return await _componentRepository.GetTypeAsync(filter);
     }
-    public async Task<List<ComponentTypeDto>> GetComponentTypesAsync(Expression<Func<ComponentType, bool>>? filter = null)
+    public async Task<ServiceResponse<List<ComponentTypeDto>>> GetComponentTypesAsync(Expression<Func<ComponentType, bool>>? filter = null)
     {
         return await _componentRepository.GetTypesAsync(filter);
     }
-    public async Task<ComponentTypeDto> AddComponentTypeAsync(ComponentTypeDto dto)
+    public async Task<ServiceResponse<ComponentTypeDto>> AddComponentTypeAsync(ComponentTypeDto dto)
     {
         return await _componentRepository.AddTypeAsync(dto);
     }
 
-    public async Task<ComponentTypeDto> UpdateComponentTypeAsync(ComponentTypeDto dto)
+    public async Task<ServiceResponse<ComponentTypeDto>> UpdateComponentTypeAsync(ComponentTypeDto dto)
     {
         return await _componentRepository.UpdateTypeAsync(dto);
     }
-    public async Task<bool> RemoveComponentTypeAsync(int id)
+    public async Task<ServiceResponse<ComponentTypeDto>> RemoveComponentTypeAsync(int id)
     {
         return await _componentRepository.RemoveTypeAsync(id);
     }
     #endregion
     
     #region Issue Methods
-    public async Task<IssueDto?> GetIssueAsync(Expression<Func<Issue, bool>>? filter = null)
+    public async Task<ServiceResponse<IssueDto>> GetIssueAsync(Expression<Func<Issue, bool>>? filter = null)
     {
         return await _issueRepository.GetAsync(filter);
     }
 
-    public async Task<List<IssueDto>> GetIssuesAsync(Expression<Func<Issue, bool>>? filter = null)
+    public async Task<ServiceResponse<List<IssueDto>>> GetIssuesAsync(Expression<Func<Issue, bool>>? filter = null)
     {
         return await _issueRepository.GetManyAsync(filter);
     }
 
-    public async Task<IssueDto> AddIssueAsync(IssueDto dto)
+    public async Task<ServiceResponse<IssueDto>> AddIssueAsync(IssueDto dto)
     {
         return await _issueRepository.AddAsync(dto);
     }
 
-    public async Task<IssueDto> UpdateIssueAsync(IssueDto dto)
+    public async Task<ServiceResponse<IssueDto>> UpdateIssueAsync(IssueDto dto)
     {
         return await _issueRepository.UpdateAsync(dto);
     }
 
-    public async Task<bool> RemoveIssueAsync(int id)
+    public async Task<ServiceResponse<IssueDto>> RemoveIssueAsync(int id)
     {
         return await _issueRepository.RemoveAsync(id);
     }
     
-    public async Task<ComponentDto?> AssignIssueToComponent(int componentId, int issueId)
+    public async Task<ServiceResponse<ComponentDto>> AssignIssueToComponent(int componentId, int issueId)
     {
-        var component = await _componentRepository.GetAsync(e => e.Id == componentId);
+        var componentResponse = await _componentRepository.GetAsync(e => e.Id == componentId);
 
-        if (component is null)
+        if (componentResponse.Result != ServiceResult.Success)
         {
-            return null;
+            return componentResponse;
         }
         
-        var issue = await _issueRepository.GetAsync(i => i.Id == issueId);
+        var issueResponse = await _issueRepository.GetAsync(i => i.Id == issueId);
 
-        if (issue is null)
+        if (issueResponse.Result != ServiceResult.Success)
         {
-            return null;
+            return new ServiceResponse<ComponentDto>
+            {
+                Result = issueResponse.Result,
+                Payload = null,
+                Message = issueResponse.Message
+            };
         }
 
-        component.IssueId = issueId;
+        componentResponse.Payload!.IssueId = issueId;
 
-        var updatedComponent = await _componentRepository.UpdateAsync(component);
+        var updatedComponentResponse = await _componentRepository.UpdateAsync(componentResponse.Payload);
 
-        if (updatedComponent.IssueId is null)
+        if (updatedComponentResponse.Result != ServiceResult.Success)
         {
-            return null;
+            return updatedComponentResponse;
         }
 
         return await _componentRepository.GetAsync(e => e.Id == componentId);

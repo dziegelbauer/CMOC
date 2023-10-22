@@ -13,7 +13,7 @@ public class ServiceRepository : Repository, IServiceRepository
     {
     }
 
-    public async Task<ServiceDto?> GetAsync(Expression<Func<Service, bool>>? filter = null)
+    public async Task<ServiceResponse<ServiceDto>> GetAsync(Expression<Func<Service, bool>>? filter = null)
     {
         var query = _db.Services.AsNoTracking().AsQueryable();
 
@@ -26,10 +26,25 @@ public class ServiceRepository : Repository, IServiceRepository
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.ToDto();
+        if (queryResult is null)
+        {
+            return new ServiceResponse<ServiceDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Service not found."
+            };
+        }
+
+        return new ServiceResponse<ServiceDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned service."
+        };
     }
 
-    public async Task<List<ServiceDto>> GetManyAsync(Expression<Func<Service, bool>>? filter = null)
+    public async Task<ServiceResponse<List<ServiceDto>>> GetManyAsync(Expression<Func<Service, bool>>? filter = null)
     {
         var query = _db.Services.AsNoTracking().AsQueryable();
 
@@ -42,14 +57,14 @@ public class ServiceRepository : Repository, IServiceRepository
 
         var queryResult = await query.ToListAsync();
 
-        return queryResult
-            .Select(s =>
-            {
-                var dto = s.ToDto();
-                dto.Status = s.ParseStatusGraph();
-                return dto;
-            })
-            .ToList();
+        return new ServiceResponse<List<ServiceDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(s => s.ToDto())
+                .ToList(),
+            Message = "Successfully returned services."
+        };
     }
 
     private static IQueryable<Service> MapJoins(IQueryable<Service> query)
@@ -63,7 +78,7 @@ public class ServiceRepository : Repository, IServiceRepository
             .ThenInclude(csr => csr.Capability);
     }
 
-    public async Task<ServiceDto> AddAsync(ServiceDto dto)
+    public async Task<ServiceResponse<ServiceDto>> AddAsync(ServiceDto dto)
     {
         var service = await _db.Services.AddAsync(dto.ToEntity());
 
@@ -80,10 +95,10 @@ public class ServiceRepository : Repository, IServiceRepository
         }
 
         await _db.SaveChangesAsync();
-        return await GetAsync(s => s.Id == service.Entity.Id) ?? throw new Exception();
+        return await GetAsync(s => s.Id == service.Entity.Id);
     }
 
-    public async Task<ServiceDto> UpdateAsync(ServiceDto dto)
+    public async Task<ServiceResponse<ServiceDto>> UpdateAsync(ServiceDto dto)
     {
         var service = _db.Services.Update(dto.ToEntity());
 
@@ -114,19 +129,24 @@ public class ServiceRepository : Repository, IServiceRepository
 
         await _db.SaveChangesAsync();
 
-        return await GetAsync(s => s.Id == service.Entity.Id) ?? throw new Exception();
+        return await GetAsync(s => s.Id == service.Entity.Id);
     }
 
-    public async Task<bool> RemoveAsync(int id)
+    public async Task<ServiceResponse<ServiceDto>> RemoveAsync(int id)
     {
         var serviceInUse = _db.ServiceSupportRelationships.Any(ssr => ssr.ServiceId == id)
                            || _db.CapabilitySupportRelationships.Any(csr => csr.ServiceId == id);
 
         if (serviceInUse)
         {
-            return false;
+            return new ServiceResponse<ServiceDto>
+            {
+                Result = ServiceResult.InUse,
+                Payload = null,
+                Message = "Service could not be deleted. Remove any dependencies related to it."
+            };
         }
         
-        return await DefaultRemoveAsync<Service>(_db, id);
+        return await DefaultRemoveAsync<Service, ServiceDto>(_db, id);
     }
 }

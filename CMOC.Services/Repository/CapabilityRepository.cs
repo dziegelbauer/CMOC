@@ -13,7 +13,7 @@ public class CapabilityRepository : Repository, ICapabilityRepository
     {
     }
 
-    public async Task<CapabilityDto?> GetAsync(Expression<Func<Capability, bool>>? filter = null)
+    public async Task<ServiceResponse<CapabilityDto>> GetAsync(Expression<Func<Capability, bool>>? filter = null)
     {
         var query = _db.Capabilities.AsNoTracking().AsQueryable();
 
@@ -26,7 +26,22 @@ public class CapabilityRepository : Repository, ICapabilityRepository
 
         var queryResult = await query.FirstOrDefaultAsync();
 
-        return queryResult?.ToDto();
+        if (queryResult is null)
+        {
+            return new ServiceResponse<CapabilityDto>
+            {
+                Result = ServiceResult.NotFound,
+                Payload = null,
+                Message = "Capability not found."
+            };
+        }
+
+        return new ServiceResponse<CapabilityDto>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult.ToDto(),
+            Message = "Successfully returned capability."
+        };
     }
 
     private static IQueryable<Capability> MapJoins(IQueryable<Capability> query)
@@ -40,7 +55,7 @@ public class CapabilityRepository : Repository, ICapabilityRepository
             .ThenInclude(cr => cr.Components);
     }
 
-    public async Task<List<CapabilityDto>> GetManyAsync(Expression<Func<Capability, bool>>? filter = null)
+    public async Task<ServiceResponse<List<CapabilityDto>>> GetManyAsync(Expression<Func<Capability, bool>>? filter = null)
     {
         var query = _db.Capabilities.AsNoTracking().AsQueryable();
 
@@ -53,39 +68,44 @@ public class CapabilityRepository : Repository, ICapabilityRepository
 
         var queryResult = await query.ToListAsync();
 
-        return queryResult
-            .Select(c =>
-            {
-                var dto = c.ToDto();
-                dto.Status = c.ParseStatusGraph();
-                return dto;
-            })
-            .ToList();
+        return new ServiceResponse<List<CapabilityDto>>
+        {
+            Result = ServiceResult.Success,
+            Payload = queryResult
+                .Select(c => c.ToDto())
+                .ToList(),
+            Message = "Successfully returned capabilities."
+        };
     }
 
-    public async Task<CapabilityDto> AddAsync(CapabilityDto dto)
+    public async Task<ServiceResponse<CapabilityDto>> AddAsync(CapabilityDto dto)
     {
         var newCapability = await _db.Capabilities.AddAsync(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetAsync(c => c.Id == newCapability.Entity.Id) ?? throw new Exception();
+        return await GetAsync(c => c.Id == newCapability.Entity.Id);
     }
 
-    public async Task<CapabilityDto> UpdateAsync(CapabilityDto dto)
+    public async Task<ServiceResponse<CapabilityDto>> UpdateAsync(CapabilityDto dto)
     {
         var updatedCapability = _db.Capabilities.Update(dto.ToEntity());
         await _db.SaveChangesAsync();
-        return await GetAsync(c => c.Id == updatedCapability.Entity.Id) ?? throw new Exception();
+        return await GetAsync(c => c.Id == updatedCapability.Entity.Id);
     }
 
-    public async Task<bool> RemoveAsync(int id)
+    public async Task<ServiceResponse<CapabilityDto>> RemoveAsync(int id)
     {
         var capabilityInUse = _db.CapabilitySupportRelationships.Any(csr => csr.CapabilityId == id);
 
         if (capabilityInUse)
         {
-            return false;
+            return new ServiceResponse<CapabilityDto>
+            {
+                Result = ServiceResult.InUse,
+                Payload = null,
+                Message = "Capability could not be deleted. Remove any dependencies related to it."
+            };
         }
 
-        return await DefaultRemoveAsync<Capability>(_db, id);
+        return await DefaultRemoveAsync<Capability, CapabilityDto>(_db, id);
     }
 }
